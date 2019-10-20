@@ -40,7 +40,8 @@ chmod 777 cronCopy
 		echo 'Enter weekday ( 0 - Sun, 1 - Mon ) | * for any:'; read weekDay
 		echo 'Enter command to install'; read user_command
 		# Update cronCopy with content of crontab 
-		crontab -l > cronCopy;
+		# Redirecting stderr and stdout for the case of non-existing crontab
+		crontab -l > cronCopy  >/dev/null 2>&1;
 		# Using quotes to catch the asterixes '*'
 		echo "$minutes $hour $day $month $weekDay $user_command" >> cronCopy;
 		# Update crontab file
