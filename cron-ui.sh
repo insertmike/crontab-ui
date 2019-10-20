@@ -5,6 +5,7 @@ chmod 777 cronCopy
     while [ true ]
     do
     	# Display the menu
+	echo "----------------------"
     	echo "Welcome to mycrontab!"
     	echo "Choose one of the following commands by entering the appropriate number."
     	echo ""
@@ -46,7 +47,7 @@ chmod 777 cronCopy
 		echo "$minutes $hour $day $month $weekDay $user_command" >> cronCopy;
 		# Update crontab file
 		crontab -i cronCopy;
-    		echo "Inserted";
+    		echo "Job inserted";
     	# Edit a job.
     	elif [ $num -eq 3 ]
     	then
@@ -58,7 +59,8 @@ chmod 777 cronCopy
     	# Remove all jobs.
     	elif [ $num -eq 5 ]
     	then
-    		echo "RemovedAll"
+		crontab -r >/dev/null 2>&1;
+    		echo "All jobs removed"
     	# Exit the while loop.
     	elif [ $num -eq 9 ]
     	then
