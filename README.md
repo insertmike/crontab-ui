@@ -1,10 +1,9 @@
-User friendly task scheduler with __crontab__
---
+# User friendly task scheduler with __crontab__
 
 Project motivation
 --
 
-As a team we aim to simplify the use of command-line commands that aim to schedule tasks for the user, by building a user friendly interface for a 'task scheduler', which otherwise is not very user friendly. 
+As a team we aim to simplify the use of command-line commands that aim to schedule tasks for the user, by building a user friendly interface for a 'task scheduler', which otherwise is not very user friendly.
 
 How it works?
 --
@@ -13,6 +12,16 @@ How it works?
 2. You are presented with a menu with numbered options to manage your tasks.
 3. Select an option by typing in the console the corresponding number to that command, ie: ```1. Display all jobs``` will display all current active scheduled jobs once you press ```1```
 
+Available commands:
+
+command | description
+------- | -----------
+1 | Display crontab jobs
+2 | Insert a job
+3 | Edit a job
+4 | Remove a job
+5 | Remove all jobs
+9 | Exit
 
 Requirements
 --
