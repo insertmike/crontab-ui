@@ -1,5 +1,0 @@
-* * * * * echo "Hello" >> text2.txt
-* * * * * echo "wassap" >> text4.txt
-* * * * * echo "hello" >> text.txt
-* * * * * echo "Hello" >> text.txt
-* * * * * echo "hello234" >> text3.txt
