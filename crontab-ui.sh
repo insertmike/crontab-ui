@@ -20,7 +20,7 @@ chmod 777 cronCopy
 	echo ""
 
     	# Check if input is not a number.
-	if [ ${#num} -ne 1 ]
+	if ! [ "$num" -eq "$num"  ] > /dev/null 2>&1
 	then
     		echo "Error: Incorrect input: $num"
     		continue
