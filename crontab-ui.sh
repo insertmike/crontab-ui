@@ -8,7 +8,7 @@ chmod 777 cronCopy
 	echo "----------------------"
     	echo "Welcome to mycrontab!"
     	echo "Choose one of the following commands by entering the appropriate number."
-    	echo ""
+    	echo "--"
     	echo "1. Display all crontab jobs."
     	echo "2. Insert a job."
     	echo "3. Edit a job."
@@ -16,9 +16,8 @@ chmod 777 cronCopy
     	echo "5. Remove all jobs."
     	echo "9. Exit."
     	echo ""
-    	echo "Select a command number:"
-    	read num
-    	echo ""
+    	read -p "Select a command number: " num
+	echo ""
 
     	# Check if input is not a number.
 	if [ ${#num} -ne 1 ]
@@ -32,17 +31,19 @@ chmod 777 cronCopy
     	# Display all jobs.
     	if [ $num -eq 1 ]
 		then
+	
 			# Update cronCopy with content of crontab
 			crontab -l > cronCopy;
 				# Checks for content in cronCopy
 				if [ -s cronCopy ]
 				then
-					# Outputs the command with the following times and dates
-					echo "The following command: "; awk '{ print$6 }' cronCopy;
-					echo "will run on "; awk '{ print$1 }' cronCopy; echo "minute(s)";
-					awk '{ print$2 }' cronCopy; echo "hour(s)"; awk '{ print$3 }' cronCopy;
-					echo "day of month "; awk '{ print$4 }' cronCopy; echo "month"; 
-					awk '{ print$5 }' cronCopy; echo "day of week";
+					cat cronCopy | while read min hour day month weekDay cm
+					do
+						printf "Command: %s. Running: on %s day of week, %s month, %s day of month, %s hour, %s min \n" "$cm" "$weekDay" "$month" "$day" "$hour" "$min"
+						
+					done 
+			
+
 				else
 					echo "No Jobs to Display.";
 				fi
@@ -105,17 +106,17 @@ chmod 777 cronCopy
 			
 			
     	# Remove a job.
-		elif [ $num -eq 4 ]
-		then
-			# Prompt for command to delete
-			echo "Enter the name of the command to be deleted: ";
-			read commandDel;
-			# Update cronCopy with content of crontab
-			crontab -l > cronCopy;
-			# Remove the command and update crontab file
-			sed -i "/$commandDel/d" cronCopy;
-			crontab -i cronCopy;
-			echo "Job deleted successfully."
+	elif [ $num -eq 4 ]
+	then
+		# Prompt for command to delete
+		echo "Enter the name of the command to be deleted: ";
+		read commandDel;
+		# Update cronCopy with content of crontab
+		crontab -l > cronCopy;
+		# Remove the command and update crontab file
+		sed -i "/$commandDel/d" cronCopy;
+		crontab -i cronCopy;
+		echo "Job deleted successfully."
 		
 		
 		
