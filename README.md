@@ -49,14 +49,52 @@ Select an option by typing in the console the corresponding number to that comma
 If you have typed ```1``` then you will obtain an output (list-like) of all of the current active crontab jobs.
 
 [image-example]
+- ``` [code example] ``` 
 
 ### Inserting a job [2]:
 If you have typed ```2``` then you will be presented with a series of questions to configure your to-be scheduled task, such as the time of day that you wish for your task to run & what is that you wish for your task to do.
 
 [image(s)-example]
+- ``` [code example] ```
+
+### Editing a job [3]:
+If you have typed ```3```, you will be presented with a prompt input to search by task commands. If the searched task command exists, then you will be asked to change the scheduled task to whatever you want through a similar set of 'config' questions like in _commands 2_.
+
+[image(s)-example]
+- ``` [code example] ```
+
+### Remove a job [4]:
+If you have typed ```4```, you will be presented with a prompt input to search by task commands. If the searched task command exists, that task will be removed from the your scheduled tasks.
+
+[image(s)-example]
+- ``` [code example] ```
+
+### Remove all job [5]:
+If you have typed ```5```, all of the scheduled tasks will be removed.
+
+[image(s)-example]
+- ``` [code example] ```
+
+### Exit task scheduler [9]:
+If you have typed ```9```, you will exit the task scheduler user interface.
+
+[image(s)-example]
+- ``` [code example] ```
+
+Further technical code doc.
+--
+
+For this project we have used a variety of different commands to fulfill our task scheduler. We listed & explained in detail the commands below, with examples of how we used them from our project code.
+
+- ```grep```
+
+- ```sed```
+
+- ```crontab```
 
 
 Requirements:
 --
 
 No requirements...lol...jk. Only works in Linux/Ubuntu/Unix OS ;)
+Have fun scheduling!
