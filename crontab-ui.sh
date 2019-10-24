@@ -25,13 +25,13 @@ chmod 777 cronCopy
     		echo "Error: Incorrect input: $num"
     		continue
     	fi
-		
-		
-		
+
+
+
     	# Display all jobs.
     	if [ $num -eq 1 ]
 		then
-	
+
 			# Update cronCopy with content of crontab
 			crontab -l > cronCopy;
 				# Checks for content in cronCopy
@@ -40,16 +40,16 @@ chmod 777 cronCopy
 					cat cronCopy | while read min hour day month weekDay cm
 					do
 						printf "Command: %s. Running: on %s day of week, %s month, %s day of month, %s hour, %s min \n" "$cm" "$weekDay" "$month" "$day" "$hour" "$min"
-						
-					done 
-			
+
+					done
+
 
 				else
 					echo "No Jobs to Display.";
 				fi
-		
-				
-				
+
+
+
     	# Insert a job.
     	elif [ $num -eq 2 ]
 		then
@@ -68,9 +68,9 @@ chmod 777 cronCopy
 			# Update crontab file
 			crontab -i cronCopy;
 				echo "Job inserted";
-				
-				
-				
+
+
+
 	# Edit a job.
 	elif [ $num -eq 3 ]
 	then
@@ -80,31 +80,35 @@ chmod 777 cronCopy
 		# Update cronCopy with content of crontab
 		crontab -l > cronCopy;
 		# Search for a the given command
-		while read line; 
-		do 
-			if echo "$line" | grep -q "$commandEdit"
+		while read line;
+		do
+			if echo "$line" | grep -q "$commandEdit"                                  #
 			then
-				echo "Command exists"
+        sed -i "/$commandEdit/d" cronCopy;
+        		crontab cronCopy
+				    echo "Command exists"
 			fi
-		done < cronCopy
-		# Prompt for input
+		done < cronCopy                                                             #read in filename cronCopy
+
+    # Prompt for input
 		echo 'Enter minutes ( 0 - 59 ) | * for any'; read minutes
 		echo 'Enter hour ( 0 - 23 ) | * for any:'; read hour
 		echo 'Enter the day ( 1 - 31 ) | * for any:'; read day
 		echo 'Enter day of month ( 1 - 12 ) | * for any:'; read month
 		echo 'Enter weekday ( 0 - Sun, 1 - Mon ) | * for any:'; read weekDay
 		echo 'Enter command to install'; read user_command
-			
-			
-			
-			
-			
-		# Update crontab file
-		crontab -i cronCopy;
+
+    # Update cronCopy with content of crontab
+    # Redirecting stderr and stdout for the case of non-existing crontab
+    crontab -l > cronCopy;
+    # Using quotes to catch the asterixes '*'
+    echo "$minutes $hour $day $month $weekDay $user_command" >> cronCopy;
+    # Update crontab file
+    crontab -i cronCopy;
 			echo "Job successfully edited";
-			
-			
-			
+
+
+
     	# Remove a job.
 	elif [ $num -eq 4 ]
 	then
@@ -117,30 +121,30 @@ chmod 777 cronCopy
 		sed -i "/$commandDel/d" cronCopy;
 		crontab -i cronCopy;
 		echo "Job deleted successfully."
-		
-		
-		
+
+
+
     	# Remove all jobs.
     	elif [ $num -eq 5 ]
     	then
 			crontab -r >/dev/null 2>&1;
     		echo "All jobs removed"
-			
-			
-			
+
+
+
     	# Exit the while loop.
     	elif [ $num -eq 9 ]
     	then
     		break
-			
-			
-			
+
+
+
     	# Error if command is not listed.
     	else
     		echo "Error: command number $num is not listed."
     	fi
-		
-		
+
+
     done
 rm cronCopy;
 echo "Exit successfull!"
