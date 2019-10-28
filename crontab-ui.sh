@@ -2,6 +2,20 @@
 
 chmod 777 cronCopy
 
+# ------------------
+# [Format Cron Field Function]
+# -- Context: Helper function to output user friendly format of a field parameter from a crontab job
+# -- Args -> $1
+# -- Returns -> "any" if $1 equals "*", otherwise "every $1"
+# ------------------
+format_cron_field() {
+	if [ "$1" = "*" ];then
+		echo "any"
+	else
+		echo "every $1"
+	fi
+}
+
 while [ true ]
   do
 
@@ -59,7 +73,13 @@ while [ true ]
 		then
 			cat cronCopy | while read min hour day month weekDay cm
 			do
-				printf "Command: %s. Running: on %s day of week, %s month, %s day of month, %s hour, %s min \n" "$cm" "$weekDay" "$month" "$day" "$hour" "$min"
+				min=$(format_cron_field "$min")
+				hour=$(format_cron_field "$hour")
+				day=$(format_cron_field "$day")
+				month=$(format_cron_field "$month")
+				weekDay=$(format_cron_field "$weekDay")
+	
+				printf "Command: %s. Running: on %s minute, %s hours, on %s day of month,  on %s month, %s day of the week\n" "$cm" "$min" "$hour" "$day" "$month" "$weekDay"
 			done
 		else
       echo ""
