@@ -49,7 +49,7 @@ Select an option by typing in the console the corresponding number to that comma
 If you have typed ```1``` then you will obtain an output (list-like) of all of the current active crontab jobs.
 
 [image-example]
-- ``` [code example] ``` 
+- ``` [code example] ```
 
 ### Inserting a job [2]:
 If you have typed ```2``` then you will be presented with a series of questions to configure your to-be scheduled task, such as the time of day that you wish for your task to run & what is that you wish for your task to do.

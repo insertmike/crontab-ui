@@ -1,6 +1,5 @@
 #!/bin/sh
 
-touch cronCopy
 chmod 777 cronCopy
 
 while [ true ]
@@ -73,22 +72,23 @@ while [ true ]
   # ------------
 
 	elif [ $num -eq 2 ]
-   then
+  then
 
-	# Prompt for command settings input
-	echo 'Enter minutes ( 0 - 59 ) | * for any'; read minutes
-	echo 'Enter hour ( 0 - 23 ) | * for any:'; read hour
-	echo 'Enter the day ( 1 - 31 ) | * for any:'; read day
-	echo 'Enter day of month ( 1 - 12 ) | * for any:'; read month
-	echo 'Enter weekday ( 0 - Sun, 1 - Mon ) | * for any:'; read weekDay
-	echo 'Enter command to install'; read user_command
+  	# Prompt for command settings input
+  	echo 'Enter minutes ( 0 - 59 ) | * for any'; read minutes
+  	echo 'Enter hour ( 0 - 23 ) | * for any:'; read hour
+  	echo 'Enter the day ( 1 - 31 ) | * for any:'; read day
+  	echo 'Enter day of month ( 1 - 12 ) | * for any:'; read month
+  	echo 'Enter weekday ( 0 - Sun, 1 - Mon ) | * for any:'; read weekDay
+  	echo 'Enter command to install'; read user_command
 
-	# Using quotes to catch the asterixes '*'
-	echo "$minutes $hour $day $month $weekDay $user_command" >> cronCopy;
+  	# Using quotes to catch the asterixes '*'
+  	echo "$minutes $hour $day $month $weekDay $user_command" >> cronCopy;
 
-	# Update crontab file
-	crontab cronCopy
-	echo "Job inserted"
+  	# Update crontab file
+  	crontab cronCopy
+  	echo "Job inserted"
+    echo ""
 
   # ----------
 	# Edit a job
@@ -97,38 +97,41 @@ while [ true ]
 	elif [ $num -eq 3 ]
 	then
 
-    #prompt for command to edit
-		read -p "Enter the name of the command to be edited: " commandEdit
+  #instanciate counter
+  count=0
 
-    #search for a given command in cronCopy
-    while read line;
-		do
-			if echo "$line" | grep -q "$commandEdit" #locate command
-			then
+  #show the user the available commands
+  while read line;
+  do
+    count=$((count + 1))
+    echo "$count"." $line"
+    echo ""
 
-	      #remove the command and update crontab file
-        sed -i "/$commandEdit/d" cronCopy
-    		crontab cronCopy
-		    echo "Command exists"
+  #read-in filename cronCopy
+  done < cronCopy
 
-			fi
-    #read-in filename cronCopy
-		done < cronCopy
+  #prompt for command to edit
+  read -p "Select command to be edited: " commandEdit
 
-    # Prompt for new command input
-		echo 'Enter minutes ( 0 - 59 ) | * for any'; read minutes
-		echo 'Enter hour ( 0 - 23 ) | * for any:'; read hour
-		echo 'Enter the day ( 1 - 31 ) | * for any:'; read day
-		echo 'Enter day of month ( 1 - 12 ) | * for any:'; read month
-		echo 'Enter weekday ( 0 - Sun, 1 - Mon ) | * for any:'; read weekDay
-		echo 'Enter command to install'; read user_command
+  #remove the command and update crontab file
+  sed -i "$commandEdit"d cronCopy
+  crontab cronCopy
 
-    # Using quotes to catch the asterixes '*'
-    echo "$minutes $hour $day $month $weekDay $user_command" >> cronCopy;
+  # Prompt for new command input
+	echo 'Enter minutes ( 0 - 59 ) | * for any'; read minutes
+	echo 'Enter hour ( 0 - 23 ) | * for any:'; read hour
+	echo 'Enter the day ( 1 - 31 ) | * for any:'; read day
+	echo 'Enter day of month ( 1 - 12 ) | * for any:'; read month
+	echo 'Enter weekday ( 0 - Sun, 1 - Mon ) | * for any:'; read weekDay
+	echo 'Enter command to install'; read user_command
 
-    # Update crontab file
-    crontab cronCopy;
-		echo "Job successfully edited";
+  # Using quotes to catch the asterixes '*'
+  echo "$minutes $hour $day $month $weekDay $user_command" >> cronCopy;
+
+  # Update crontab file
+  crontab cronCopy;
+	echo "Job successfully edited";
+  echo ""
 
   # ------------
 	# Remove a job
@@ -137,13 +140,27 @@ while [ true ]
   elif [ $num -eq 4 ]
 	then
 
-		#prompt for command to delete
-		read -p "Enter the name of the command to be deleted: " commandDel
+  #instanciate counter
+  count=0
 
-		#remove the command and update crontab file
-		sed -i "/$commandDel/d" cronCopy;
-		crontab cronCopy;
-		echo "Job deleted successfully."
+  #show the user the available commands
+  while read line;
+  do
+    count=$((count + 1))
+    echo "$count"." $line"
+    echo ""
+
+  #read-in filename cronCopy
+  done < cronCopy
+
+  #prompt for command to delete
+  read -p "Select command to be deleted: " commandDel
+
+  #remove the command and update crontab file
+  sed -i "$commandDel"d cronCopy;
+  crontab cronCopy;
+  echo "Job deleted successfully."
+  echo ""
 
   # ---------------
 	# Remove all jobs
@@ -153,6 +170,7 @@ while [ true ]
 	then
     crontab -r >/dev/null 2>&1;
     echo "All jobs removed"
+    echo ""
 
   # -------------------
 	# Exit the while loop
@@ -168,6 +186,7 @@ while [ true ]
 
 	else
 		echo "Error: command number $num is not listed."
+    echo ""
 
 	fi
 
