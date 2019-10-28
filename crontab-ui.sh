@@ -3,18 +3,104 @@
 chmod 777 cronCopy
 
 # ------------------
-# [Format Cron Field Function]
+# [Format Output Field Function]
+# --
 # -- Context: Helper function to output user friendly format of a field parameter from a crontab job
-# -- Args -> $1
-# -- Returns -> "any" if $1 equals "*", otherwise "every $1"
+# --
+# -- Args: -> $1 ( Output Field ) 
+# --
+# -- Returns: -> "any" if $1 equals "*", otherwise "every $1"
+# --
 # ------------------
-format_cron_field() {
+format_output_field() {
 	if [ "$1" = "*" ];then
 		echo "any"
 	else
 		echo "every $1"
 	fi
 }
+
+
+# ------------------
+# [Validate Input Field Function]
+# --
+# -- Context: Validates whether user input is valid according to the corresponding field
+# --
+# -- Args: -> $1 ( User Input ) 
+#	   -> $2 ( Field ) of { 'min', 'hour', 'day', 'month', 'weekDay' }
+# --
+# -- Returns -> 1 ( True )  | 0 ( False ) 
+# --
+# ------------------
+validate_input_field() {
+  	# ------------------------
+	# [ Base Case - Asterix ] - Valid for all inputs
+        # ------------------------
+	if [ "$1" = "*" ];
+	then
+		echo "Debugging: Success"
+		return
+	fi
+
+	case "$2" in
+
+	# ------------------------
+	# [ Minute Case ]
+        # ------------------------
+	"min")
+		# Digit check
+		# Any non-numberic values will result in error, which will be implicitly considered as false in shell
+		if [ "$1" -eq "$1" ] 2>/dev/null; then
+			# Range check
+			if [ "$1" -ge "0" ] && [ "$1" -le "59" ]
+			then
+				echo "Debugging: Success"
+				return 1
+			else
+				# Input out of range
+				echo "Invalid range"
+				return 0
+			fi
+		# Non digit -> Invalid
+		else
+			echo "Invalid input, please check regulations and try again"
+			return 0
+		fi
+	  ;;
+	# ------------------------
+	# [ Hour Case ]
+        # ------------------------
+	"hour")
+		return
+	  ;;
+	# ------------------------
+	# [ Day Case ]
+        # ------------------------
+	"day")
+		return
+	  ;;
+	# ------------------------
+	# [ Month Case ]
+        # ------------------------
+	"month")
+		return
+	  ;;
+	# ------------------------
+	# [ WeekDay Case ]
+        # ------------------------
+	"weekDay")
+		return
+	  ;;
+	# ------------------------
+	# [ Default case: invalid parameters
+        # ------------------------
+	*)
+		echo "Debugging: Invalid parameters"
+		return 0
+	  ;;
+	esac
+}
+
 
 while [ true ]
   do
@@ -73,11 +159,11 @@ while [ true ]
 		then
 			cat cronCopy | while read min hour day month weekDay cm
 			do
-				min=$(format_cron_field "$min")
-				hour=$(format_cron_field "$hour")
-				day=$(format_cron_field "$day")
-				month=$(format_cron_field "$month")
-				weekDay=$(format_cron_field "$weekDay")
+				min=$(format_output_field "$min")
+				hour=$(format_output_field "$hour")
+				day=$(format_output_field "$day")
+				month=$(format_output_field "$month")
+				weekDay=$(format_output_field "$weekDay")
 	
 				printf "Command: %s. Running: on %s minute, %s hours, on %s day of month,  on %s month, %s day of the week\n" "$cm" "$min" "$hour" "$day" "$month" "$weekDay"
 			done
@@ -96,10 +182,15 @@ while [ true ]
 
   	# Prompt for command settings input
   	echo 'Enter minutes ( 0 - 59 ) | * for any'; read minutes
+	validate_input_field "$minutes" "min"
   	echo 'Enter hour ( 0 - 23 ) | * for any:'; read hour
+	validate_input_field "$hour" "hour"
   	echo 'Enter the day ( 1 - 31 ) | * for any:'; read day
+	validate_input_field "$day" "day"
   	echo 'Enter day of month ( 1 - 12 ) | * for any:'; read month
+	validate_input_field "$month" "month"
   	echo 'Enter weekday ( 0 - Sun, 1 - Mon ) | * for any:'; read weekDay
+	validate_input_field "$weekDay" "weekDay"
   	echo 'Enter command to install'; read user_command
 
   	# Using quotes to catch the asterixes '*'
