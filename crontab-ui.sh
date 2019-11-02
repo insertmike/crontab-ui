@@ -93,7 +93,7 @@ ensure_numeric() {
 # ------------------
 ensure_range() {
 	# Check -> Numeric value
-	ensure_numeric $1
+	ensure_numeric "$1"
 	if [ ! $? -eq 1 ]
 	then
 		echo "***** Error: Invalid input, please check regulations and try again *****"
@@ -184,7 +184,7 @@ validate_input_field() {
 }
 
 
-while [ true ]
+while true 
   do
 
   # ------------------
@@ -223,7 +223,7 @@ while [ true ]
 	# Display all jobs
   # -----------------
 
-	if [ $num -eq 1 ]
+	if [ "$num" -eq 1 ]
 	then
 		print_crontab_jobs
 	
@@ -231,7 +231,7 @@ while [ true ]
 	# Insert a job
   # ------------
 
-	elif [ $num -eq 2 ]
+	elif [ "$num" -eq 2 ]
   then
 
   	# Prompt for command settings input
@@ -279,7 +279,7 @@ while [ true ]
 	# Edit a job
   # ----------
 
-	elif [ $num -eq 3 ]
+	elif [ "$num" -eq 3 ]
 	then
 
 	 print_crontab_jobs
@@ -311,7 +311,7 @@ while [ true ]
 	# Remove a job
   # ------------
 
-  elif [ $num -eq 4 ]
+  elif [ "$num" -eq 4 ]
 	then
 
   #instanciate counter
@@ -332,7 +332,7 @@ while [ true ]
 	# Remove all jobs
   # ---------------
 
-	elif [ $num -eq 5 ]
+	elif [ "$num" -eq 5 ]
 	then
     crontab -r >/dev/null 2>&1;
     echo "All jobs removed"
@@ -342,7 +342,7 @@ while [ true ]
 	# Exit the while loop
   # -------------------
 
-	elif [ $num -eq 9 ]
+	elif [ "$num" -eq 9 ]
 	then
 		break
 
