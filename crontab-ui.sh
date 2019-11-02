@@ -317,15 +317,7 @@ while [ true ]
   #instanciate counter
   count=0
 
-  #show the user the available commands
-  while read line;
-  do
-    count=$((count + 1))
-    echo "$count"." $line"
-    echo ""
-
-  #read-in filename cronCopy
-  done < cronCopy
+  print_crontab_jobs
 
   #prompt for command to delete
   read -p "Select command to be deleted: " commandDel
