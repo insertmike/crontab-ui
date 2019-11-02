@@ -3,6 +3,45 @@
 touch cronCopy
 chmod 777 cronCopy
 
+
+
+# ------------------
+# [Print Cronrab Jobs Function]
+# --
+# -- Context: Prints current crontab jobs in User Friendly Way
+# --
+# ------------------
+print_crontab_jobs() {
+
+    #update cronCopy with content of crontab
+    crontab -l > cronCopy;
+
+    #checks for content in cronCopy
+		if [ -s cronCopy ]
+		then
+			#instanciate counter
+			count=0
+			cat cronCopy | while read min hour day month weekDay cm
+			do
+				count=$((count + 1))
+				min=$(format_output_field "$min")
+				hour=$(format_output_field "$hour")
+				day=$(format_output_field "$day")
+				month=$(format_output_field "$month")
+				weekDay=$(format_output_field "$weekDay")
+	
+				printf "Command No %s: %s Running: on %s minute/s, %s hour/s, on %s day of month,  on %s month, %s day of the week\n" "$count" "$cm" "$min" "$hour" "$day" "$month" "$weekDay"			
+				echo ""
+				
+				
+			done
+		else
+      echo ""
+			echo "No Jobs to Display";
+      echo ""
+		fi
+}
+
 # ------------------
 # [Format Output Field Function]
 # --
@@ -169,6 +208,7 @@ while [ true ]
   # ------------------
   # [Input validation]
   # ------------------
+
 	ensure_range "$num" 1 9
 	if [ ! $? -eq 1 ]
 	then
@@ -185,29 +225,8 @@ while [ true ]
 
 	if [ $num -eq 1 ]
 	then
-
-    #update cronCopy with content of crontab
-    crontab -l > cronCopy;
-
-    #checks for content in cronCopy
-		if [ -s cronCopy ]
-		then
-			cat cronCopy | while read min hour day month weekDay cm
-			do
-				min=$(format_output_field "$min")
-				hour=$(format_output_field "$hour")
-				day=$(format_output_field "$day")
-				month=$(format_output_field "$month")
-				weekDay=$(format_output_field "$weekDay")
+		print_crontab_jobs
 	
-				printf "Command: %s. Running: on %s minute/s, %s hour/s, on %s day of month,  on %s month, %s day of the week\n" "$cm" "$min" "$hour" "$day" "$month" "$weekDay"
-			done
-		else
-      echo ""
-			echo "No Jobs to Display";
-      echo ""
-		fi
-
   # ------------
 	# Insert a job
   # ------------
@@ -263,18 +282,7 @@ while [ true ]
 	elif [ $num -eq 3 ]
 	then
 
-  #instanciate counter
-  count=0
-
-  #show the user the available commands
-  while read line;
-  do
-    count=$((count + 1))
-    echo "$count"." $line"
-    echo ""
-
-  #read-in filename cronCopy
-  done < cronCopy
+	 print_crontab_jobs
 
   #prompt for command to edit
   read -p "Select command to be edited: " commandEdit
@@ -288,7 +296,7 @@ while [ true ]
 	echo 'Enter hour ( 0 - 23 ) | * for any:'; read hour
 	echo 'Enter the day ( 1 - 31 ) | * for any:'; read day
 	echo 'Enter day of month ( 1 - 12 ) | * for any:'; read month
-	echo 'Enter weekday ( 0 - Sun, 1 - Mon ) | * for any:'; read weekDay
+	echo 'Enter weekday ( 0 - Sun, 6 - Sat ) | * for any:'; read weekDay
 	echo 'Enter command to install'; read user_command
 
   # Using quotes to catch the asterixes '*'
@@ -365,4 +373,3 @@ rm cronCopy;
 
 # Exit crontab
 echo "Exit successfull!"
-
