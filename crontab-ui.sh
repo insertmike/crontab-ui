@@ -31,14 +31,11 @@ print_crontab_jobs() {
 				weekDay=$(format_output_field "$weekDay")
 	
 				printf "Command No %s: %s Running: on %s minute/s, %s hour/s, on %s day of month,  on %s month, %s day of the week\n" "$count" "$cm" "$min" "$hour" "$day" "$month" "$weekDay"			
-				echo ""
-				
-				
+				echo ""				
 			done
+			return 1
 		else
-      echo ""
-			echo "No Jobs to Display";
-      echo ""
+			return 0
 		fi
 }
 
@@ -277,7 +274,11 @@ while true
 	if [ "$num" -eq 1 ]
 	then
 		print_crontab_jobs
-	
+		if [ ! $? -eq 1 ]
+		then
+			echo "No Jobs to Display"
+		fi
+		continue
   # ------------
 	# Insert a job
   # ------------
@@ -293,6 +294,7 @@ while true
 	        echo ""
 	  	echo "Job inserted"
 	fi
+	continue
 
 
   # ----------
@@ -303,6 +305,12 @@ elif [ "$num" -eq 3 ]
 then
 	# Print current crontab jobs
 	print_crontab_jobs
+
+	if [ ! $? -eq 1 ]
+	then
+		echo "*** Job list is empty ***"
+		continue
+	fi
 
 	#prompt for command to edit
   	read -p "Select command to be edited: " commandEdit
@@ -317,9 +325,9 @@ then
 	then
 		continue
 	else
-	        echo ""
 	  	echo "Job successfully edited"
 	fi	
+	continue
 
   # ------------
 	# Remove a job
@@ -332,7 +340,11 @@ then
   count=0
 
   print_crontab_jobs
-
+  if [ ! $? -eq 1 ]
+  then
+	echo "*** Job list is empty ***"
+	continue
+  fi
   #prompt for command to delete
   read -p "Select command to be deleted: " commandDel
 
@@ -341,6 +353,7 @@ then
   crontab cronCopy;
   echo "Job deleted successfully."
   echo ""
+  continue
 
   # ---------------
 	# Remove all jobs
@@ -351,6 +364,7 @@ then
     crontab -r >/dev/null 2>&1;
     echo "All jobs removed"
     echo ""
+    continue
 
   # -------------------
 	# Exit the while loop
@@ -359,7 +373,7 @@ then
 	elif [ "$num" -eq 9 ]
 	then
 		break
-
+	
   # ------------------------------
 	# Error if command is not listed
   # ------------------------------
@@ -367,9 +381,9 @@ then
 	else
 		echo "Error: command number $num is not listed."
     echo ""
-
+	continue	
 	fi
-
+	
 done
 
 # -- END
