@@ -1,5 +1,6 @@
 #!/bin/sh
 
+touch cronCopy
 chmod 777 cronCopy
 
 # ------------------
@@ -399,3 +400,4 @@ rm cronCopy;
 
 # Exit crontab
 echo "Exit successfull!"
+
