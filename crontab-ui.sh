@@ -169,20 +169,11 @@ while [ true ]
   # ------------------
   # [Input validation]
   # ------------------
-
-  #validate for 1 char input
-  if [ ${#num} -ne 1 ]
-  then
-		#validate for char to be a digit
-    if [ ! $num == [0-9] ]
-    then
-      echo ""
-      echo "Error: Incorrect input: $num"
-      echo ""
-      continue
-    fi
-  fi
-
+	ensure_range "$num" 1 9
+	if [ ! $? -eq 1 ]
+	then
+		continue
+	fi		
 
   # ------------------------
   # [Menu commands handling]
