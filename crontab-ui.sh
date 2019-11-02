@@ -112,6 +112,57 @@ ensure_range() {
 	fi
 }
 
+# ------------------
+# [Insert Crontab Job]
+# --
+# -- Context: Prompts user to insert new crontab job
+# -- If cron does not exist, it creates it
+# -- Returns: -> 1 ( Success ) | 0 ( Failure ) 
+# --
+# ------------------
+insert_crontab_job() {
+
+  	# Prompt for command settings input
+  	echo 'Enter minutes ( 0 - 59 ) | * for any'; read minutes
+	validate_input_field "$minutes" "min" 
+	if [ ! $? -eq 1 ]
+	then
+		return 0
+	fi
+  	echo 'Enter hour ( 0 - 23 ) | * for any:'; read hour
+	validate_input_field "$hour" "hour"
+	if [ ! $? -eq 1 ]
+	then
+		return 0
+	fi
+  	echo 'Enter the day ( 1 - 31 ) | * for any:'; read day
+	validate_input_field "$day" "day"
+	if [ ! $? -eq 1 ]
+	then
+		return 0
+	fi
+  	echo 'Enter day of month ( 1 - 12 ) | * for any:'; read month
+	validate_input_field "$month" "month"
+	if [ ! $? -eq 1 ]
+	then
+		return 0
+	fi
+  	echo 'Enter weekday ( 0 - Sun, 6 - Sat ) | * for any:'; read weekDay
+	validate_input_field "$weekDay" "weekDay"
+	if [ ! $? -eq 1 ]
+	then
+		return 0
+	fi
+  	echo 'Enter command to install'; read user_command
+
+  	# Using quotes to catch the asterixes '*'
+  	echo "$minutes $hour $day $month $weekDay $user_command" >> cronCopy;
+
+  	# Update crontab file
+  	crontab cronCopy
+	return 1
+}
+
 
 # ------------------
 # [Validate Input Field Function]
@@ -234,64 +285,32 @@ while true
 	elif [ "$num" -eq 2 ]
   then
 
-  	# Prompt for command settings input
-  	echo 'Enter minutes ( 0 - 59 ) | * for any'; read minutes
-	validate_input_field "$minutes" "min" 
+	insert_crontab_job
 	if [ ! $? -eq 1 ]
 	then
 		continue
+	else
+	        echo ""
+	  	echo "Job inserted"
 	fi
-  	echo 'Enter hour ( 0 - 23 ) | * for any:'; read hour
-	validate_input_field "$hour" "hour"
-	if [ ! $? -eq 1 ]
-	then
-		continue
-	fi
-  	echo 'Enter the day ( 1 - 31 ) | * for any:'; read day
-	validate_input_field "$day" "day"
-	if [ ! $? -eq 1 ]
-	then
-		continue
-	fi
-  	echo 'Enter day of month ( 1 - 12 ) | * for any:'; read month
-	validate_input_field "$month" "month"
-	if [ ! $? -eq 1 ]
-	then
-		continue
-	fi
-  	echo 'Enter weekday ( 0 - Sun, 6 - Sat ) | * for any:'; read weekDay
-	validate_input_field "$weekDay" "weekDay"
-	if [ ! $? -eq 1 ]
-	then
-		continue
-	fi
-  	echo 'Enter command to install'; read user_command
 
-  	# Using quotes to catch the asterixes '*'
-  	echo "$minutes $hour $day $month $weekDay $user_command" >> cronCopy;
-
-  	# Update crontab file
-  	crontab cronCopy
-  	echo "Job inserted"
-    echo ""
 
   # ----------
 	# Edit a job
   # ----------
 
-	elif [ "$num" -eq 3 ]
-	then
+elif [ "$num" -eq 3 ]
+then
+	print_crontab_jobs
 
-	 print_crontab_jobs
+	#prompt for command to edit
+  	read -p "Select command to be edited: " commandEdit
 
-  #prompt for command to edit
-  read -p "Select command to be edited: " commandEdit
+	#remove the command and update crontab file
+	sed -i "$commandEdit"d cronCopy
+	crontab cronCopy
 
-  #remove the command and update crontab file
-  sed -i "$commandEdit"d cronCopy
-  crontab cronCopy
-
-  # Prompt for new command input
+	# Prompt for new command input
 	echo 'Enter minutes ( 0 - 59 ) | * for any'; read minutes
 	echo 'Enter hour ( 0 - 23 ) | * for any:'; read hour
 	echo 'Enter the day ( 1 - 31 ) | * for any:'; read day
@@ -299,11 +318,11 @@ while true
 	echo 'Enter weekday ( 0 - Sun, 6 - Sat ) | * for any:'; read weekDay
 	echo 'Enter command to install'; read user_command
 
-  # Using quotes to catch the asterixes '*'
-  echo "$minutes $hour $day $month $weekDay $user_command" >> cronCopy;
+	# Using quotes to catch the asterixes '*'
+	echo "$minutes $hour $day $month $weekDay $user_command" >> cronCopy;
 
-  # Update crontab file
-  crontab cronCopy;
+	# Update crontab file
+	crontab cronCopy;
 	echo "Job successfully edited";
   echo ""
 
