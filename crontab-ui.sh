@@ -301,6 +301,7 @@ while true
 
 elif [ "$num" -eq 3 ]
 then
+	# Print current crontab jobs
 	print_crontab_jobs
 
 	#prompt for command to edit
@@ -310,21 +311,15 @@ then
 	sed -i "$commandEdit"d cronCopy
 	crontab cronCopy
 
-	# Prompt for new command input
-	echo 'Enter minutes ( 0 - 59 ) | * for any'; read minutes
-	echo 'Enter hour ( 0 - 23 ) | * for any:'; read hour
-	echo 'Enter the day ( 1 - 31 ) | * for any:'; read day
-	echo 'Enter day of month ( 1 - 12 ) | * for any:'; read month
-	echo 'Enter weekday ( 0 - Sun, 6 - Sat ) | * for any:'; read weekDay
-	echo 'Enter command to install'; read user_command
-
-	# Using quotes to catch the asterixes '*'
-	echo "$minutes $hour $day $month $weekDay $user_command" >> cronCopy;
-
-	# Update crontab file
-	crontab cronCopy;
-	echo "Job successfully edited";
-  echo ""
+	# Insert new job
+	insert_crontab_job
+	if [ ! $? -eq 1 ]
+	then
+		continue
+	else
+	        echo ""
+	  	echo "Job successfully edited"
+	fi	
 
   # ------------
 	# Remove a job
