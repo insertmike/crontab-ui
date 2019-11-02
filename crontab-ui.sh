@@ -71,25 +71,94 @@ validate_input_field() {
 	# [ Hour Case ]
         # ------------------------
 	"hour")
-		return
-	  ;;
+		# Digit check
+		# Any non-numberic values will result in error, which will be implicitly considered as false in shell
+		if [ "$1" -eq "$1" ] 2>/dev/null; then
+			# Range check
+			if [ "$1" -ge "0" ] && [ "$1" -le "23" ]
+			then
+				echo "Debugging: Success"
+				return 1
+			else
+				# Input out of range
+				echo "Invalid range"
+				return 0
+			fi
+		# Non digit -> Invalid
+		else
+			echo "Invalid input, please check regulations and try again"
+			return 0
+		fi
+	;;
 	# ------------------------
 	# [ Day Case ]
         # ------------------------
 	"day")
-		return
+		# Digit check
+		# Any non-numberic values will result in error, which will be implicitly considered as false in shell
+		if [ "$1" -eq "$1" ] 2>/dev/null; then
+			# Range check
+			if [ "$1" -ge "1" ] && [ "$1" -le "31" ]
+			then
+				echo "Debugging: Success"
+				return 1
+			else
+				# Input out of range
+				echo "Invalid range"
+				return 0
+			fi
+		# Non digit -> Invalid
+		else
+			echo "Invalid input, please check regulations and try again"
+			return 0
+		fi
 	  ;;
+	  
 	# ------------------------
 	# [ Month Case ]
         # ------------------------
 	"month")
-		return
+		# Digit check
+		# Any non-numberic values will result in error, which will be implicitly considered as false in shell
+		if [ "$1" -eq "$1" ] 2>/dev/null; then
+			# Range check
+			if [ "$1" -ge "1" ] && [ "$1" -le "12" ]
+			then
+				echo "Debugging: Success"
+				return 1
+			else
+				# Input out of range
+				echo "Invalid range"
+				return 0
+			fi
+		# Non digit -> Invalid
+		else
+			echo "Invalid input, please check regulations and try again"
+			return 0
+		fi
 	  ;;
 	# ------------------------
 	# [ WeekDay Case ]
         # ------------------------
 	"weekDay")
-		return
+		# Digit check
+		# Any non-numberic values will result in error, which will be implicitly considered as false in shell
+		if [ "$1" -eq "$1" ] 2>/dev/null; then
+			# Range check
+			if [ "$1" -ge "0" ] && [ "$1" -le "6" ]
+			then
+				echo "Debugging: Success"
+				return 1
+			else
+				# Input out of range
+				echo "Invalid range"
+				return 0
+			fi
+		# Non digit -> Invalid
+		else
+			echo "Invalid input, please check regulations and try again"
+			return 0
+		fi
 	  ;;
 	# ------------------------
 	# [ Default case: invalid parameters
@@ -182,15 +251,35 @@ while [ true ]
 
   	# Prompt for command settings input
   	echo 'Enter minutes ( 0 - 59 ) | * for any'; read minutes
-	validate_input_field "$minutes" "min"
+	validate_input_field "$minutes" "min" 
+	if [ $? -eq 0 ]
+	then
+		continue
+	fi
   	echo 'Enter hour ( 0 - 23 ) | * for any:'; read hour
 	validate_input_field "$hour" "hour"
+	if [ $? -eq 1 ]
+	then
+		continue
+	fi
   	echo 'Enter the day ( 1 - 31 ) | * for any:'; read day
 	validate_input_field "$day" "day"
+	if [ $? -eq 1 ]
+	then
+		continue
+	fi
   	echo 'Enter day of month ( 1 - 12 ) | * for any:'; read month
 	validate_input_field "$month" "month"
-  	echo 'Enter weekday ( 0 - Sun, 1 - Mon ) | * for any:'; read weekDay
+	if [ $? -eq 1 ]
+	then
+		continue
+	fi
+  	echo 'Enter weekday ( 0 - Sun, 6 - Sat ) | * for any:'; read weekDay
 	validate_input_field "$weekDay" "weekDay"
+	if [ $? -eq 1 ]
+	then
+		continue
+	fi
   	echo 'Enter command to install'; read user_command
 
   	# Using quotes to catch the asterixes '*'
