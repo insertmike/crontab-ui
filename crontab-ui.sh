@@ -14,7 +14,7 @@ chmod 777 cronCopy
 print_crontab_jobs() {
 
     #update cronCopy with content of crontab
-    crontab -l > cronCopy;
+    crontab -l > cronCopy 2>/dev/null;
 
     #checks for content in cronCopy
 		if [ -s cronCopy ]
