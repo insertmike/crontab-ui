@@ -3,8 +3,6 @@
 touch cronCopy
 chmod 777 cronCopy
 
-
-
 # ------------------
 # [Print Cronrab Jobs Function]
 # --
@@ -29,9 +27,9 @@ print_crontab_jobs() {
 				day=$(format_output_field "$day")
 				month=$(format_output_field "$month")
 				weekDay=$(format_output_field "$weekDay")
-	
-				printf "Command No %s: %s Running: on %s minute/s, %s hour/s, on %s day of month,  on %s month, %s day of the week\n" "$count" "$cm" "$min" "$hour" "$day" "$month" "$weekDay"			
-				echo ""				
+
+				printf "Command No %s: %s Running: on %s minute/s, %s hour/s, on %s day of month,  on %s month, %s day of the week\n" "$count" "$cm" "$min" "$hour" "$day" "$month" "$weekDay"
+				echo ""
 			done
 			return 1
 		else
@@ -44,14 +42,21 @@ print_crontab_jobs() {
 # --
 # -- Context: Helper function to output user friendly format of a field parameter from a crontab job
 # --
-# -- Args: -> $1 ( Output Field ) 
+# -- Args: -> $1 ( Output Field )
 # --
-# -- Returns: -> "any" if $1 equals "*", otherwise "every $1"
+# -- Returns: -> "any" if $1 equals "*",
+# --             "evey other" if $1 is of the "*/(1-23)" form
+# --             otherwise "every $1"
 # --
 # ------------------
 format_output_field() {
+
 	if [ "$1" = "*" ];then
 		echo "any"
+
+  elif (echo "$1" | grep -Eq '*/([0-9]{1}|[0-9]{2})$'); then
+    echo -n "every other "; (echo "$1" | grep -o -E '[0-9]+')
+
 	else
 		echo "every $1"
 	fi
@@ -63,15 +68,15 @@ format_output_field() {
 # --
 # -- Context: Checks if argument is numeric value
 # --
-# -- Args: -> $1 ( Argument To Be Checked )  
+# -- Args: -> $1 ( Argument To Be Checked )
 # --
-# -- Returns: -> 1 ( True ) | 0 ( False ) 
+# -- Returns: -> 1 ( True ) | 0 ( False )
 # --
 # ------------------
 ensure_numeric() {
-	if [ "$1" -eq "$1" ] 2>/dev/null; then	
+	if [ "$1" -eq "$1" ] 2>/dev/null; then
 		return 1
-	else 
+	else
 		return 0
 	fi
 }
@@ -81,32 +86,44 @@ ensure_numeric() {
 # --
 # -- Context: Ensures that numeric $1 argument is in range between arguments $2 and $3
 # --
-# -- Args: -> $1 ( User Argument ) 
-#          -> $2 ( Range: Lower Bound ) 
-#          -> $3 ( Range: Upper Bound ) 
+# -- Args: -> $1 ( User Argument )
+#          -> $2 ( Range: Lower Bound )
+#          -> $3 ( Range: Upper Bound )
 # --
-# -- Returns: -> 1 ( True ) | 0 ( False ) 
+# -- Returns: -> 1 ( True ) | 0 ( False )
 # --
 # ------------------
 ensure_range() {
-	# Check -> Numeric value
-	ensure_numeric "$1"
-	if [ ! $? -eq 1 ]
-	then
-		echo "***** Error: Invalid input, please check regulations and try again *****"
-		return 0
-	fi
 
-	# Range check
-	if [ "$1" -ge "$2" ] && [ "$1" -le "$3" ]
-	then
+  # Check if hour is the */(0-23) every other hour form
+  if (echo "$1" | grep -Eq '*/([0-9]{1}|[0-9]{2})$')
+  then
 		# Success
 		return 1
 	else
-		# Failure -> Input out of range
-		echo "***** Error: Invalid range, please check regulations and try again *****"
-		return 0
-	fi
+
+    # Otherwise, continue validation:
+
+  	# Check -> Numeric value
+  	ensure_numeric "$1"
+  	if [ ! $? -eq 1 ]
+  	then
+  		echo "***** Error: Invalid input, please check regulations and try again *****"
+  		return 0
+  	fi
+
+  	# Range check
+  	if [ "$1" -ge "$2" ] && [ "$1" -le "$3" ]
+  	then
+  		# Success
+  		return 1
+  	else
+  		# Failure -> Input out of range
+  		echo "***** Error: Invalid range, please check regulations and try again *****"
+  		return 0
+  	fi
+
+  fi
 }
 
 # ------------------
@@ -114,14 +131,14 @@ ensure_range() {
 # --
 # -- Context: Prompts user to insert new crontab job
 # -- If cron does not exist, it creates it
-# -- Returns: -> 1 ( Success ) | 0 ( Failure ) 
+# -- Returns: -> 1 ( Success ) | 0 ( Failure )
 # --
 # ------------------
 insert_crontab_job() {
 
   	# Prompt for command settings input
   	echo 'Enter minutes ( 0 - 59 ) | * for any'; read minutes
-	validate_input_field "$minutes" "min" 
+	validate_input_field "$minutes" "min"
 	if [ ! $? -eq 1 ]
 	then
 		return 0
@@ -166,10 +183,10 @@ insert_crontab_job() {
 # --
 # -- Context: Validates whether user input is valid according to the corresponding field
 # --
-# -- Args: -> $1 ( User Input ) 
+# -- Args: -> $1 ( User Input )
 #	   -> $2 ( Field ) of { 'min', 'hour', 'day', 'month', 'weekDay' }
 # --
-# -- Returns -> 1 ( True )  | 0 ( False ) 
+# -- Returns -> 1 ( True )  | 0 ( False )
 # --
 # ------------------
 validate_input_field() {
@@ -185,45 +202,44 @@ validate_input_field() {
 
 	# ------------------------
 	# [ Minute Case ]
-        # ------------------------
+  # ------------------------
 	"min")
-		
 		ensure_range "$1" 0 59
 		return	$?
 
 	  ;;
 	# ------------------------
 	# [ Hour Case ]
-        # ------------------------
+  # ------------------------
 	"hour")
 		ensure_range "$1" 0 23
 		return	$?
 	 ;;
 	# ------------------------
 	# [ Day Case ]
-        # ------------------------
+  # ------------------------
 	"day")
 		ensure_range "$1" 1 31
-		return	$?	  
+		return	$?
 	;;
-	  
+
 	# ------------------------
 	# [ Month Case ]
-        # ------------------------
+  # ------------------------
 	"month")
 		ensure_range "$1" 1 12
-		return	$?  
+		return	$?
 	  ;;
 	# ------------------------
 	# [ WeekDay Case ]
-        # ------------------------
+  # ------------------------
 	"weekDay")
 		ensure_range "$1" 0 6
-		return	$?  
+		return	$?
 	  ;;
 	# ------------------------
 	# [ Default case: invalid parameters
-        # ------------------------
+  # ------------------------
 	*)
 		echo "***** Error: Invalid parameters, please check regulations and try again *****"
 		return 0
@@ -232,7 +248,7 @@ validate_input_field() {
 }
 
 
-while true 
+while true
   do
 
   # ------------------
@@ -261,7 +277,7 @@ while true
 	if [ ! $? -eq 1 ]
 	then
 		continue
-	fi		
+	fi
 
   # ------------------------
   # [Menu commands handling]
@@ -279,55 +295,56 @@ while true
 			echo "No Jobs to Display"
 		fi
 		continue
+
   # ------------
 	# Insert a job
   # ------------
 
 	elif [ "$num" -eq 2 ]
   then
-
-	insert_crontab_job
-	if [ ! $? -eq 1 ]
-	then
-		continue
-	else
-	        echo ""
-	  	echo "Job inserted"
-	fi
-	continue
-
+    # Insert Job Method
+  	insert_crontab_job
+  	if [ ! $? -eq 1 ]
+  	then
+  		continue
+  	else
+        echo ""
+  	  	echo "Job inserted"
+  	fi
+  	continue
 
   # ----------
 	# Edit a job
   # ----------
 
-elif [ "$num" -eq 3 ]
-then
-	# Print current crontab jobs
-	print_crontab_jobs
+  elif [ "$num" -eq 3 ]
+  then
+	   # Print current crontab jobs
+     print_crontab_jobs
 
-	if [ ! $? -eq 1 ]
-	then
-		echo "*** Job list is empty ***"
-		continue
-	fi
+     # Method Error Handling
+     if [ ! $? -eq 1 ]
+     then
+	      echo "*** Job list is empty ***"
+    		continue
+  	 fi
 
-	#prompt for command to edit
-  	read -p "Select command to be edited: " commandEdit
+   #prompt for command to edit
+   read -p "Select command to be edited: " commandEdit
 
-	#remove the command and update crontab file
-	sed -i "$commandEdit"d cronCopy
-	crontab cronCopy
+   #remove the command and update crontab file
+   sed -i "$commandEdit"d cronCopy
+   crontab cronCopy
 
-	# Insert new job
-	insert_crontab_job
-	if [ ! $? -eq 1 ]
-	then
-		continue
-	else
-	  	echo "Job successfully edited"
-	fi	
-	continue
+	 # Insert new job
+	 insert_crontab_job
+	 if [ ! $? -eq 1 ]
+	 then
+		  continue
+	 else
+	    echo "Job successfully edited"
+	 fi
+	 continue
 
   # ------------
 	# Remove a job
@@ -342,8 +359,8 @@ then
   print_crontab_jobs
   if [ ! $? -eq 1 ]
   then
-	echo "*** Job list is empty ***"
-	continue
+	   echo "*** Job list is empty ***"
+     continue
   fi
   #prompt for command to delete
   read -p "Select command to be deleted: " commandDel
@@ -373,7 +390,7 @@ then
 	elif [ "$num" -eq 9 ]
 	then
 		break
-	
+
   # ------------------------------
 	# Error if command is not listed
   # ------------------------------
@@ -381,9 +398,9 @@ then
 	else
 		echo "Error: command number $num is not listed."
     echo ""
-	continue	
+    continue
 	fi
-	
+
 done
 
 # -- END
