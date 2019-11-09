@@ -21,12 +21,17 @@ print_crontab_jobs() {
 			count=0
 			cat cronCopy | while read min hour day month weekDay cm
 			do
+        #commands counter
 			  count=$((count + 1))
 
-        # Checking for preset commands:
+        #check for presence of "@" commands & print
         if (echo "$min" | grep -Eq '@'); then
-          printf "Command No %s: %s Running: %s \n" "$count" "$min" "$hour $day $month $WeekDay $cm";
-        # All other commands:
+
+          #pipeline fil to print/p command with sed
+          p=$(cat cronCopy | sed -n "$count"p);
+          echo "Command No "$count": "$p" \n"
+
+        #all other commands, format output thier:
         else
   				min=$(format_output_field "$min")
   				hour=$(format_output_field "$hour")
@@ -34,12 +39,17 @@ print_crontab_jobs() {
   				month=$(format_output_field "$month")
   				weekDay=$(format_output_field "$weekDay")
 
-  				printf "Command No %s: %s Running: on %s minute/s, %s hour/s, on %s day(s) of month,  on %s month(s), %s day(s) of the week\n" "$count" "$cm" "$min" "$hour" "$day" "$month" "$weekDay"
-  				echo ""
+  				echo "Command No "$count": "$cm""
+          echo "Running: on "$min" minute/s, "$hour" hour/s, on "$day" day(s) of month, on "$month" month(s), "$weekDay" day(s) of the week \n"
         fi
+
 			done
+
+      # Success
 			return 1
 		else
+
+      # Error
 			return 0
 		fi
 }
@@ -62,16 +72,16 @@ format_output_field() {
 		echo "any";
 
   # Handling STEP value Output Format
-  elif (echo "$1" | grep -Eq '(/)'); then
-    if (echo "$1" | grep -Eq '(\*)'); then
-      (echo -n "every other "); (echo -n "$1" | grep -o -E '[^/]*$' | tr '\n' ' ');
-    else
-      echo -n "between "; (echo -n "$1" | grep -o -E '^[^/]*' | tr '\n' ' '); (echo -n "every other "); (echo -n "$1" | grep -o -E '[^/]*$' | tr '\n' ' ');
-    fi
-
-  # Handling RANGES & LISTS value Output Format
-  elif (echo "$1" | grep -Eq '(-|,)'); then
-    echo -n "between $1";
+  # elif (echo "$1" | grep -Eq '(/)'); then
+  #   if (echo "$1" | grep -Eq '(\*)'); then
+  #     (echo -n "every other "); (echo -n "$1" | grep -o -E '[^/]*$' | tr '\n' ' ');
+  #   else
+  #     echo -n "between "; (echo -n "$1" | grep -o -E '^[^/]*' | tr '\n' ' '); (echo -n "every other "); (echo -n "$1" | grep -o -E '[^/]*$' | tr '\n' ' ');
+  #   fi
+  #
+  # # Handling RANGES & LISTS value Output Format
+  # elif (echo "$1" | grep -Eq '(-|,)'); then
+  #   echo -n "between $1";
 
 	else
 		echo "every $1"
@@ -117,7 +127,7 @@ ensure_range() {
 		return 1
   else
 
-    # Otherwise, continue validation:
+    # Otherwise, check for literal integers:
 
   	# Check -> Numeric value
   	ensure_numeric "$1"
@@ -144,24 +154,22 @@ ensure_range() {
 # ------------------
 # [Ensure Pre-set Command Function]
 # --
-# -- Context: Ensures that numeric $1 argument is in range between arguments $2 and $3
+# -- Context: Prompts user to insert new crontab job
+# --          from the pre-set commands in crontab
 # --
-# -- Args: -> $1 ( User Argument )
-#          -> $2 ( Range: Lower Bound )
-#          -> $3 ( Range: Upper Bound )
-# --
-# -- Returns: -> 1 ( True ) | 0 ( False )
+# -- If cron does not exist, it creates it
+# -- Returns: -> 1 ( Success ) | 0 ( Failure )
 # --
 
 insert_crontab_job_pre_set() {
 
-  # ------------------
-  # [Display pre-set commands menu]
-  # ------------------
+# -------------------------------------
+#    Display pre-set commands menu
+# -------------------------------------
 
 	echo "----------------------"
 	echo "Please select from the list of pre-set commands below:"
-  echo "--"
+  echo ""
 	echo "@reboot - Run once, at startup"
 	echo "@yearly or @annualy - Run once a year"
   echo "@monthly - Run once a month"
@@ -170,7 +178,6 @@ insert_crontab_job_pre_set() {
 	echo "@hourly - Run once an hour"
 	echo ""
   echo 'Enter pre-ser command to use (ie: @reboot)'; read preset;
-	echo ""
   echo 'Enter command to install'; read pre_setcommand;
 
   # Place the command in the crontab file:
@@ -178,7 +185,9 @@ insert_crontab_job_pre_set() {
 
   # Update crontab file
   crontab cronCopy
-return 1
+
+  # Success
+  return 1
 
 }
 
@@ -192,44 +201,56 @@ return 1
 # ------------------
 insert_crontab_job() {
 
-  	# Prompt for command settings input
-  	echo 'Enter minutes ( 0 - 59 ) | * for any'; read minutes
+	# Prompt for minutes input
+	echo 'Enter minutes ( 0 - 59 ) | * for any'; read minutes
 	validate_input_field "$minutes" "min"
 	if [ ! $? -eq 1 ]
 	then
 		return 0
 	fi
-  	echo 'Enter hour ( 0 - 23 ) | * for any:'; read hour
+
+  # Prompt for hours input
+	echo 'Enter hour ( 0 - 23 ) | * for any:'; read hour
 	validate_input_field "$hour" "hour"
 	if [ ! $? -eq 1 ]
 	then
 		return 0
 	fi
-  	echo 'Enter the day ( 1 - 31 ) | * for any:'; read day
+
+  # Prompt for day of month input
+	echo 'Enter the day of month ( 1 - 31 ) | * for any:'; read day
 	validate_input_field "$day" "day"
 	if [ ! $? -eq 1 ]
 	then
 		return 0
 	fi
-  	echo 'Enter day of month ( 1 - 12 ) | * for any:'; read month
+
+  # Prompt for month input
+	echo 'Enter day of month ( 1 - 12 ) | * for any:'; read month
 	validate_input_field "$month" "month"
 	if [ ! $? -eq 1 ]
 	then
 		return 0
 	fi
-  	echo 'Enter weekday ( 0 - Sun, 6 - Sat ) | * for any:'; read weekDay
+
+  # Prompt for weekday input
+	echo 'Enter weekday ( 0 - Sun, 6 - Sat ) | * for any:'; read weekDay
 	validate_input_field "$weekDay" "weekDay"
 	if [ ! $? -eq 1 ]
 	then
 		return 0
 	fi
-  	echo 'Enter command to install'; read user_command
 
-  	# Using quotes to catch the asterixes '*'
-  	echo "$minutes $hour $day $month $weekDay $user_command" >> cronCopy;
+  # Prompt for task command input
+  echo 'Enter command to install'; read user_command
 
-  	# Update crontab file
-  	crontab cronCopy
+	# Using quotes to catch the asterixes '*'
+	echo "$minutes $hour $day $month $weekDay $user_command" >> cronCopy;
+
+	# Update crontab file
+	crontab cronCopy
+
+  # Success
 	return 1
 }
 
@@ -245,43 +266,47 @@ insert_crontab_job() {
 # -- Returns -> 1 ( True )  | 0 ( False )
 # --
 # ------------------
+
 validate_input_field() {
-	# ------------------------
-	# [ Base Case - Asterix ] - Valid for all inputs
-  # ------------------------
+
+# -------------------------------------
+# Base Case (*) - Valid for all inputs
+# -------------------------------------
 	if [ "$1" = "*" ];
 	then
 		return 1
 	fi
 
+  #using case
 	case "$2" in
 
-	# ------------------------
-	# [ Minute Case ]
-  # ------------------------
+# -------------------------------------
+#             Minute Case
+# -------------------------------------
 	"min")
 		ensure_range "$1" 0 59
 		return	$?
-
 	  ;;
-	# ------------------------
-	# [ Hour Case ]
-  # ------------------------
+
+# -------------------------------------
+#             Hour Case
+# -------------------------------------
 	"hour")
 		ensure_range "$1" 0 23
 		return	$?
-	 ;;
-	# ------------------------
-	# [ Day Case ]
-  # ------------------------
+	  ;;
+
+# -------------------------------------
+#             Day of Month Case
+# -------------------------------------
 	"day")
     ensure_range "$1" 1 31
 		return	$?
-	;;
+	  ;;
 
-	# ------------------------
-	# [ Month Case ]
-  # ------------------------
+# -------------------------------------
+#             Month Case
+# -------------------------------------
 	"month")
     # check for string months inputs:
     if (echo "$1" | grep -Eq '(,?Jan,?|,?Feb,?|,?Mar,?|,?Apr,?|,?May,?|,?Jun,?|,?Jul,?|,?Aug,?|,?Sep,?|,?Oct,?|,?Nov,?|,?Dec,?)')
@@ -289,13 +314,14 @@ validate_input_field() {
       # Success
       return 1
     else
-		    ensure_range "$1" 1 12
+	    ensure_range "$1" 1 12
     fi
 		return	$?
 	  ;;
-	# ------------------------
-	# [ WeekDay Case ]
-  # ------------------------
+
+# -------------------------------------
+#            WeekDay Case
+# -------------------------------------
 	"weekDay")
     # check for string weekdays inputs:
     if (echo "$1" | grep -Eq '(,?Mon,?|,?Tue,?|,?Wed,?|,?Thu,?|,?Fri,?|,?Sat,?|,?Sun,?)')
@@ -303,13 +329,14 @@ validate_input_field() {
       # Success
       return 1
     else
-		    ensure_range "$1" 0 6
+	    ensure_range "$1" 0 6
     fi
 		return	$?
 	  ;;
-	# ------------------------
-	# [ Default case: invalid parameters
-  # ------------------------
+
+# -------------------------------------
+#   Default case: invalid parameters
+# -------------------------------------
 	*)
 		echo "***** Error: Invalid parameters, please check regulations and try again *****"
 		return 0
@@ -317,13 +344,18 @@ validate_input_field() {
 	esac
 }
 
+# - FUNCTION END
+
+# -------------------------------------
+# Crontab main menu command redirecting
+# -------------------------------------
 
 while true
   do
 
-  # ------------------
-  # [Display the menu]
-  # ------------------
+# -------------------------------------
+#          Display the menu
+# -------------------------------------
 
 	echo "----------------------"
 	echo "Welcome to mycrontab!"
@@ -339,23 +371,22 @@ while true
 	read -p "Select a command number: " num
 	echo ""
 
-  # ------------------
-  # [Input validation]
-  # ------------------
+# -------------------------------------
+# User menu selection input validation
+# -------------------------------------
 
+  # pass user input to vaidation method
 	ensure_range "$num" 1 9
+
+  # if return != 1 (not success), restart loop
 	if [ ! $? -eq 1 ]
 	then
 		continue
 	fi
 
-  # ------------------------
-  # [Menu commands handling]
-  # ------------------------
-
-  # -----------------
-	# Display all jobs
-  # -----------------
+# -------------------------------------
+#         Display all jobs (1)
+# -------------------------------------
 
 	if [ "$num" -eq 1 ]
 	then
@@ -366,15 +397,16 @@ while true
 		fi
 		continue
 
-  # ------------
-	# Insert a job
-  # ------------
+# -------------------------------------
+#         Insert a job (2)
+# -------------------------------------
 
 	elif [ "$num" -eq 2 ]
   then
-    # Prompt user input for simple commands ie: @reboot, @annually
+
+    # Prompt user for custom or pre-set schdeule commands
     echo 'Would you like to schedule a custom time or choose a pre-set time ie: weekly?';
-    echo 'Please type: (1) -for "custom" or (2) - for "pre-set"'; read ans;
+    echo 'Please type: (1) for "custom" or (2) for "pre-set"'; read ans;
 
     if [ "$ans" -eq 1 ]
     then
@@ -383,13 +415,14 @@ while true
 
     elif [ "$ans" -eq 2 ]
     then
-      # Insert Job Method (Custom time pre-set)
+      # Insert Job Method (Pre-set schedule time)
     	insert_crontab_job_pre_set
 
     else
       echo "---- Incorrect command selection ----"
       continue
     fi
+
   	if [ ! $? -eq 1 ]
   	then
   		continue
@@ -399,90 +432,112 @@ while true
   	fi
   	continue
 
-  # ----------
-	# Edit a job
-  # ----------
+# -------------------------------------
+#           Edit a job (3)
+# -------------------------------------
 
   elif [ "$num" -eq 3 ]
   then
-	   # Print current crontab jobs
-     print_crontab_jobs
+    #call function to print crontab jobs
+    print_crontab_jobs
 
-     # Method Error Handling
-     if [ ! $? -eq 1 ]
-     then
-	      echo "*** Job list is empty ***"
-    		continue
-  	 fi
+    #error handling
+    if [ ! $? -eq 1 ]
+    then
+      echo "*** Job list is empty ***"
+    	continue
+    fi
 
-   #prompt for command to edit
-   read -p "Select command to be edited: " commandEdit
+    #prompt for command to edit
+    read -p "Select command to be edited: " commandEdit
 
-   #remove the command and update crontab file
-   sed -i "$commandEdit"d cronCopy
-   crontab cronCopy
+    #remove the command and update crontab file
+    sed -i "$commandEdit"d cronCopy
+    crontab cronCopy
 
-	 # Insert new job
-	 insert_crontab_job
-	 if [ ! $? -eq 1 ]
-	 then
-		  continue
-	 else
-	    echo "Job successfully edited"
-	 fi
-	 continue
+    #prompt user for custom or pre-set schdeule commands
+    echo 'Would you like to schedule a custom time or choose a pre-set time ie: weekly?';
+    echo 'Please type: (1) for "custom" or (2) for "pre-set"'; read ans;
 
-  # ------------
-	# Remove a job
-  # ------------
+    if [ "$ans" -eq 1 ]
+    then
+      # Insert Job Method (Custom time selection)
+    	insert_crontab_job
+
+    elif [ "$ans" -eq 2 ]
+    then
+      # Insert Job Method (Pre-set schedule time)
+    	insert_crontab_job_pre_set
+
+    else
+      echo "---- Incorrect command selection ----"
+      continue
+    fi
+
+    #error handling
+    if [ ! $? -eq 1 ]
+    then
+      continue
+    else
+      echo ""
+      echo "Job successfully edited"
+    fi
+    continue
+
+# -------------------------------------
+#           Remove a job (4)
+# -------------------------------------
 
   elif [ "$num" -eq 4 ]
 	then
+    #instanciate counter
+    count=0
 
-  #instanciate counter
-  count=0
+    #call print function
+    print_crontab_jobs
+    if [ ! $? -eq 1 ]
+    then
+      echo "*** Job list is empty ***"
+      echo ""
+      continue
+    fi
+    #prompt for command to delete
+    read -p "Select command to be deleted: " commandDel
 
-  print_crontab_jobs
-  if [ ! $? -eq 1 ]
-  then
-	   echo "*** Job list is empty ***"
-     continue
-  fi
-  #prompt for command to delete
-  read -p "Select command to be deleted: " commandDel
+    #remove the command and update crontab file
+    sed -i "$commandDel"d cronCopy;
+    crontab cronCopy;
 
-  #remove the command and update crontab file
-  sed -i "$commandDel"d cronCopy;
-  crontab cronCopy;
-  echo "Job deleted successfully."
-  echo ""
-  continue
+    echo "Job deleted successfully."
+    echo ""
+    continue
 
-  # ---------------
-	# Remove all jobs
-  # ---------------
+# -------------------------------------
+#          Remove all jobs (5)
+# -------------------------------------
 
 	elif [ "$num" -eq 5 ]
 	then
     crontab -r >/dev/null 2>&1;
+
     echo "All jobs removed"
     echo ""
     continue
 
-  # -------------------
-	# Exit the while loop
-  # -------------------
+# -------------------------------------
+#        Exit the while loop (9)
+# -------------------------------------
 
 	elif [ "$num" -eq 9 ]
 	then
 		break
 
-  # ------------------------------
-	# Error if command is not listed
-  # ------------------------------
+# -------------------------------------
+#   Error if command is not listed
+# -------------------------------------
 
 	else
-		echo "Error: command number $num is not listed."
+    echo "Error: command number $num is not listed."
     echo ""
     continue
 	fi
