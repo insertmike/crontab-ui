@@ -28,7 +28,7 @@ print_crontab_jobs() {
 				month=$(format_output_field "$month")
 				weekDay=$(format_output_field "$weekDay")
 
-				printf "Command No %s: %s Running: on %s minute/s, %s hour/s, on %s day of month,  on %s month, %s day of the week\n" "$count" "$cm" "$min" "$hour" "$day" "$month" "$weekDay"
+				printf "Command No %s: %s Running: on %s minute/s, %s hour/s, on %s day(s) of month,  on %s month(s), %s day(s) of the week\n" "$count" "$cm" "$min" "$hour" "$day" "$month" "$weekDay"
 				echo ""
 			done
 			return 1
@@ -45,7 +45,7 @@ print_crontab_jobs() {
 # -- Args: -> $1 ( Output Field )
 # --
 # -- Returns: -> "any" if $1 equals "*",
-# --             "evey other" if $1 is of the "*/(1-23)" form
+# --             "between" {range}, every other {value} STEPs
 # --             otherwise "every $1"
 # --
 # ------------------
@@ -54,8 +54,13 @@ format_output_field() {
 	if [ "$1" = "*" ];then
 		echo "any"
 
-  elif (echo "$1" | grep -Eq '*/([0-9]{1}|[0-9]{2})$'); then
-    echo -n "every other "; (echo "$1" | grep -o -E '[0-9]+')
+  # Handling STEP value Output Format
+  elif (echo "$1" | grep -Eq '([0-9]+-[0-9]+|\*)/[0-9]+$'); then
+    echo -n "between "; (echo -n "$1" | grep -o -E '^[^/]*' | tr '\n' ' '); (echo -n "every other "); (echo -n "$1" | grep -o -E '[^/]*$' | tr '\n' ' ');
+
+  # Handling RANGES & LISTS value Output Format
+  elif (echo "$1" | grep -Eq '([0-9]+-[0-9]+,?)$|([0-9]+,?)$'); then
+    echo -n "between $1";
 
 	else
 		echo "every $1"
@@ -66,7 +71,7 @@ format_output_field() {
 # ------------------
 # [ Ensure Numeric Argument Function]
 # --
-# -- Context: Checks if argument is numeric value
+# -- Context: Checks if argument is a numeric value
 # --
 # -- Args: -> $1 ( Argument To Be Checked )
 # --
@@ -95,8 +100,8 @@ ensure_numeric() {
 # ------------------
 ensure_range() {
 
-  # Check if hour is the */(0-23) every other hour form
-  if (echo "$1" | grep -Eq '*/([0-9]{1}|[0-9]{2})$')
+  # Check for STEPs, LISTS & RANGES (check coursework doc) values of the form (0-23|*) / (0-23)
+  if (echo "$1" | grep -Eq '(([0-9]+-[0-9]+|\*)/[0-9]+)$|([0-9]+-[0-9]+,?)$|([0-9]+,?)$')
   then
 		# Success
 		return 1
