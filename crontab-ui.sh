@@ -21,15 +21,22 @@ print_crontab_jobs() {
 			count=0
 			cat cronCopy | while read min hour day month weekDay cm
 			do
-				count=$((count + 1))
-				min=$(format_output_field "$min")
-				hour=$(format_output_field "$hour")
-				day=$(format_output_field "$day")
-				month=$(format_output_field "$month")
-				weekDay=$(format_output_field "$weekDay")
+			  count=$((count + 1))
 
-				printf "Command No %s: %s Running: on %s minute/s, %s hour/s, on %s day(s) of month,  on %s month(s), %s day(s) of the week\n" "$count" "$cm" "$min" "$hour" "$day" "$month" "$weekDay"
-				echo ""
+        # Checking for preset commands:
+        if (echo "$min" | grep -Eq '@'); then
+          printf "Command No %s: %s Running: %s \n" "$count" "$min" "$hour $day $month $WeekDay $cm";
+        # All other commands:
+        else
+  				min=$(format_output_field "$min")
+  				hour=$(format_output_field "$hour")
+  				day=$(format_output_field "$day")
+  				month=$(format_output_field "$month")
+  				weekDay=$(format_output_field "$weekDay")
+
+  				printf "Command No %s: %s Running: on %s minute/s, %s hour/s, on %s day(s) of month,  on %s month(s), %s day(s) of the week\n" "$count" "$cm" "$min" "$hour" "$day" "$month" "$weekDay"
+  				echo ""
+        fi
 			done
 			return 1
 		else
@@ -52,21 +59,24 @@ print_crontab_jobs() {
 format_output_field() {
 
 	if [ "$1" = "*" ];then
-		echo "any"
+		echo "any";
 
   # Handling STEP value Output Format
-  elif (echo "$1" | grep -Eq '([0-9]+-[0-9]+|\*)/[0-9]+$'); then
-    echo -n "between "; (echo -n "$1" | grep -o -E '^[^/]*' | tr '\n' ' '); (echo -n "every other "); (echo -n "$1" | grep -o -E '[^/]*$' | tr '\n' ' ');
+  elif (echo "$1" | grep -Eq '(/)'); then
+    if (echo "$1" | grep -Eq '(\*)'); then
+      (echo -n "every other "); (echo -n "$1" | grep -o -E '[^/]*$' | tr '\n' ' ');
+    else
+      echo -n "between "; (echo -n "$1" | grep -o -E '^[^/]*' | tr '\n' ' '); (echo -n "every other "); (echo -n "$1" | grep -o -E '[^/]*$' | tr '\n' ' ');
+    fi
 
   # Handling RANGES & LISTS value Output Format
-  elif (echo "$1" | grep -Eq '([0-9]+-[0-9]+,?)$|([0-9]+,?)$'); then
+  elif (echo "$1" | grep -Eq '(-|,)'); then
     echo -n "between $1";
 
 	else
 		echo "every $1"
 	fi
 }
-
 
 # ------------------
 # [ Ensure Numeric Argument Function]
@@ -101,11 +111,11 @@ ensure_numeric() {
 ensure_range() {
 
   # Check for STEPs, LISTS & RANGES (check coursework doc) values of the form (0-23|*) / (0-23)
-  if (echo "$1" | grep -Eq '(([0-9]+-[0-9]+|\*)/[0-9]+)$|([0-9]+-[0-9]+,?)$|([0-9]+,?)$')
+  if (echo "$1" | grep -Eq '(,?([0-9]+-[0-9]+|\*)/[0-9]+)$|(,?[0-9]+-[0-9]+)$|(,?[0-9]+)$')
   then
 		# Success
 		return 1
-	else
+  else
 
     # Otherwise, continue validation:
 
@@ -129,6 +139,47 @@ ensure_range() {
   	fi
 
   fi
+}
+
+# ------------------
+# [Ensure Pre-set Command Function]
+# --
+# -- Context: Ensures that numeric $1 argument is in range between arguments $2 and $3
+# --
+# -- Args: -> $1 ( User Argument )
+#          -> $2 ( Range: Lower Bound )
+#          -> $3 ( Range: Upper Bound )
+# --
+# -- Returns: -> 1 ( True ) | 0 ( False )
+# --
+
+insert_crontab_job_pre_set() {
+
+  # ------------------
+  # [Display pre-set commands menu]
+  # ------------------
+
+	echo "----------------------"
+	echo "Please select from the list of pre-set commands below:"
+  echo "--"
+	echo "@reboot - Run once, at startup"
+	echo "@yearly or @annualy - Run once a year"
+  echo "@monthly - Run once a month"
+	echo "@weekly - Run once a week"
+	echo "@daily or @midnight- Run once a day"
+	echo "@hourly - Run once an hour"
+	echo ""
+  echo 'Enter pre-ser command to use (ie: @reboot)'; read preset;
+	echo ""
+  echo 'Enter command to install'; read pre_setcommand;
+
+  # Place the command in the crontab file:
+  echo "$preset $pre_setcommand" >> cronCopy;
+
+  # Update crontab file
+  crontab cronCopy
+return 1
+
 }
 
 # ------------------
@@ -195,9 +246,9 @@ insert_crontab_job() {
 # --
 # ------------------
 validate_input_field() {
-  	# ------------------------
+	# ------------------------
 	# [ Base Case - Asterix ] - Valid for all inputs
-        # ------------------------
+  # ------------------------
 	if [ "$1" = "*" ];
 	then
 		return 1
@@ -224,7 +275,7 @@ validate_input_field() {
 	# [ Day Case ]
   # ------------------------
 	"day")
-		ensure_range "$1" 1 31
+    ensure_range "$1" 1 31
 		return	$?
 	;;
 
@@ -232,14 +283,28 @@ validate_input_field() {
 	# [ Month Case ]
   # ------------------------
 	"month")
-		ensure_range "$1" 1 12
+    # check for string months inputs:
+    if (echo "$1" | grep -Eq '(,?Jan,?|,?Feb,?|,?Mar,?|,?Apr,?|,?May,?|,?Jun,?|,?Jul,?|,?Aug,?|,?Sep,?|,?Oct,?|,?Nov,?|,?Dec,?)')
+    then
+      # Success
+      return 1
+    else
+		    ensure_range "$1" 1 12
+    fi
 		return	$?
 	  ;;
 	# ------------------------
 	# [ WeekDay Case ]
   # ------------------------
 	"weekDay")
-		ensure_range "$1" 0 6
+    # check for string weekdays inputs:
+    if (echo "$1" | grep -Eq '(,?Mon,?|,?Tue,?|,?Wed,?|,?Thu,?|,?Fri,?|,?Sat,?|,?Sun,?)')
+    then
+      # Success
+      return 1
+    else
+		    ensure_range "$1" 0 6
+    fi
 		return	$?
 	  ;;
 	# ------------------------
@@ -307,14 +372,30 @@ while true
 
 	elif [ "$num" -eq 2 ]
   then
-    # Insert Job Method
-  	insert_crontab_job
+    # Prompt user input for simple commands ie: @reboot, @annually
+    echo 'Would you like to schedule a custom time or choose a pre-set time ie: weekly?';
+    echo 'Please type: (1) -for "custom" or (2) - for "pre-set"'; read ans;
+
+    if [ "$ans" -eq 1 ]
+    then
+      # Insert Job Method (Custom time selection)
+    	insert_crontab_job
+
+    elif [ "$ans" -eq 2 ]
+    then
+      # Insert Job Method (Custom time pre-set)
+    	insert_crontab_job_pre_set
+
+    else
+      echo "---- Incorrect command selection ----"
+      continue
+    fi
   	if [ ! $? -eq 1 ]
   	then
   		continue
   	else
-        echo ""
-  	  	echo "Job inserted"
+      echo ""
+	  	echo "Job inserted"
   	fi
   	continue
 
