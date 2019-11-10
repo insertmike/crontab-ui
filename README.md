@@ -55,16 +55,17 @@ If you have typed ```2``` then you will be presented with a series of questions 
 
 Using Custom Schedule Commands
 
-![image](https://user-images.githubusercontent.com/20924663/68547491-0a5f6800-03da-11ea-809f-6748fbc57d7c.png)
+![image](https://user-images.githubusercontent.com/20924663/68550357-017e8e80-03fa-11ea-8c02-2444d7ecc179.png)
 
 Using Pre-set schedule commands
 
-![image](https://user-images.githubusercontent.com/20924663/68547512-3e3a8d80-03da-11ea-856e-d2a13b4a080b.png)
+![image](https://user-images.githubusercontent.com/20924663/68550370-21ae4d80-03fa-11ea-8675-ae7320bdb327.png)
+
 
 ### Editing a job [3]:
 If you have typed ```3```, you will be presented with a prompt input to search by task commands. If the searched task command exists, then you will be asked to change the scheduled task to whatever you want through a similar set of 'config' questions like in _command 2_ **Inserting a job**.
 
-![image](https://user-images.githubusercontent.com/20924663/68547544-a7ba9c00-03da-11ea-95ce-89144f7758c2.png)
+![image](https://user-images.githubusercontent.com/20924663/68550385-47d3ed80-03fa-11ea-96f1-1463f659c4eb.png)
 
 ### Remove a job [4]:
 If you have typed ```4```, you will be presented with a prompt input to search by task commands. If the searched task command exists, that task will be removed from the your scheduled tasks.
@@ -90,13 +91,15 @@ For this project we have used a variety of different commands to fulfill our tas
 
 - ```sed``` - stands for _**s**tream **ed**itorsed_. As a command it receives input text as a _“stream”_ and edits the stream according to your instructions (filter). By and large, **people use _sed_ as a command line version of find and replace.**
 
-- ```cat``` -
+- ```cat``` - The cat (short for “concatenate“) command is one of the most frequently used command in Linux/Unix like operating systems. cat command allows us to create single or multiple files, view contain of file, concatenate files and redirect output in terminal or files.
 
-- ```IFS``` -
+- ```IFS``` - The IFS is a special shell variable.
+You can change the value of IFS as per your requirments.
+The Internal Field Separator (IFS) that is used for word splitting after expansion and to split lines into words with the read builtin command.
 
-- ```read``` -
+- ```read``` - Read is a bash builtin command that reads the contents of a line into a variable. It allows for word splitting that is tied to the special shell variable IFS. It is primarily used for catching user input but can be used to implement functions taking input from standard input.
 
-- ```tail``` -
+- ```tail``` - ‘tail’ command reads last 10 lines of the file. If you want to read more or less than 10 lines from the ending of the file then you have to use ‘-n’ option with ‘tail’ command.
 
 
 

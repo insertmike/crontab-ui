@@ -34,9 +34,9 @@ print_crontab_jobs() {
           #read in variable "$p" & break into components
           read preset pre_setcommand <<< "$p"
 
-          #print
+          #print output
           echo "Command No "$count": "$pre_setcommand""
-          echo "Running "$preset""
+          echo "Running: "$preset""
           echo ""
 
         #all other commands, format output line accordingly:
@@ -83,6 +83,7 @@ format_output_field() {
 	else
 		echo "every $1"
 	fi
+
 }
 
 # ------------------
@@ -108,25 +109,26 @@ ensure_range() {
   echo "0" >> error
 
   #split input values using (,) as delimiters
-  #store split values in array
+  #store split values in 'array'
   IFS=',' read -r -a array <<< "$1"
 
-  #iterate over array & validate split values indiviadually
+  #iterate over 'array' & validate split values indiviadually
   for element in "${array[@]}"
   do
 
-    #check for input matchting patterns
+    #check for split values matchting patterns
     if (echo "$element" | grep -Eq '^([0-9]+-[0-9]+|\*)/[0-9]+$|^[0-9]+-[0-9]+$|^[0-9]+$')
     then
 
       #value range check
-      #split all digits in string into subsequent substrings
+      #split all digits in $element into subsequent substrings (individual digits)
       s=$(grep -Eo '[[:alpha:]]+|[0-9]+' <<< "$element")
-      #iterate over the split digits & validate them indiviadually
+
+      #iterate over the split digits in "$s" & validate them indiviadually for range
       echo "$s" | while read -r line;
         do
 
-          #digit value range check
+          #digit value range check, passed arguments $2 & $3
         	if [ "$line" -ge "$2" ] && [ "$line" -le "$3" ]
         	then
         		#success
@@ -141,13 +143,13 @@ ensure_range() {
         done
         continue
 
-    #check only month name inputs:
-    elif (echo "$element" | grep -Eq '(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)') && [ "$3" -eq 12 ]
+    #check month name inputs for month field only
+    elif (echo "$element" | grep -Eq '(^Jan$|^Feb$|^Mar$|^Apr$|^May$|^Jun$|^Jul$|^Aug$|^Sep$|^Oct$|^Nov$|^Dec$)') && [ "$3" -eq 12 ]
     then
       continue
 
-    #check only week day name inputs:
-    elif (echo "$element" | grep -Eq '(Mon|Tue|Wed|Thu|Fri|Sat|Sun)') && [ "$3" -eq 6 ]
+    #check weekday name inputs for weekday field only
+    elif (echo "$element" | grep -Eq '(^Mon$|^Tue$|^Wed$|^Thu$|^Fri$|^Sat$|^Sun$)') && [ "$3" -eq 6 ]
     then
       continue
 
@@ -163,13 +165,14 @@ ensure_range() {
   #read last line of error log file
   k=$(tail -n 1 error)
 
-  #check for errors ie: 1
+  #check for errors if
+  #if log file contains num. 1
   if (echo "$k" | grep -Eq "1");
   then
-    # error
+    #error
     return 0
   else
-    # success
+    #success
     return 1
   fi
 
@@ -195,7 +198,7 @@ insert_crontab_job_pre_set() {
 	echo "Please select from the list of pre-set commands below:"
   echo ""
 	echo "@reboot - Run once, at startup"
-	echo "@yearly or @annualy - Run once a year"
+	echo "@yearly or @annually - Run once a year"
   echo "@monthly - Run once a month"
 	echo "@weekly - Run once a week"
 	echo "@daily or @midnight - Run once a day"
@@ -204,7 +207,7 @@ insert_crontab_job_pre_set() {
   echo 'Enter pre-ser command to use (ie: @reboot)'; read preset;
 
   # validate user inputs:
-  if (echo "$preset" | grep -Eq '(@reboot|@yearly|@annualy|@monthly|@weekly|@daily|@midnight|@hourly)')
+  if (echo "$preset" | grep -Eq '(^@reboot$|^@yearly$|^@annually$|^@monthly$|^@weekly$|^@daily$|^@midnight$|^@hourly$)')
   then
     # Prompt for command input
     echo 'Enter command to install'; read pre_setcommand;
@@ -236,6 +239,12 @@ insert_crontab_job_pre_set() {
 # ------------------
 insert_crontab_job() {
 
+  # Inform User of input validation and criteria
+  echo ""
+  echo "Your input must be within fields specified range"
+  echo "Ranges (4-7) | Lists: (5,6,7,4-20) | Steps: (*/2,0-15/2) are allowed"
+  echo ""
+
 	# Prompt for minutes input
 	echo 'Enter minutes ( 0 - 59 ) | * for any'; read minutes
 	validate_input_field "$minutes" "min"
@@ -261,7 +270,7 @@ insert_crontab_job() {
 	fi
 
   # Prompt for month input
-	echo 'Enter month ( 1 - 12 ) | * for any:'; read month
+	echo 'Enter month ( 1 - 12 ) or dates: Jan, Feb... | * for any:'; read month
 	validate_input_field "$month" "month"
 	if [ ! $? -eq 1 ]
 	then
@@ -269,7 +278,7 @@ insert_crontab_job() {
 	fi
 
   # Prompt for weekday input
-	echo 'Enter weekday ( 0 - Sun, 6 - Sat ) | * for any:'; read weekDay
+	echo 'Enter weekday ( 0 - Sun, 6 - Sat ) or dates: Mon, Tue... | * for any:'; read weekDay
 	validate_input_field "$weekDay" "weekDay"
 	if [ ! $? -eq 1 ]
 	then
@@ -420,6 +429,7 @@ while true
 		if [ ! $? -eq 1 ]
 		then
 			echo "No Jobs to Display"
+      echo ""
 		fi
 		continue
 
@@ -431,8 +441,14 @@ while true
   then
 
     #prompt user for custom or pre-set schdeule commands
-    echo 'Would you like to schedule a custom time or choose a pre-set time (ie: weekly)?';
-    echo 'Please type: (1) for custom or (2) for pre-set'; read ans;
+    echo ""
+    echo 'Please select your schedule input type:';
+    echo "--"
+    echo "1. Custom time (whenever you want)"
+    echo "2. Choose from preset times (ie: weekly, daily...)"
+    echo ""
+    #read in user input
+    read -p "Select a command number: " ans
 
     if [ "$ans" -eq 1 ]
     then
@@ -457,6 +473,7 @@ while true
   	else
       echo ""
 	  	echo "Job inserted"
+      echo ""
   	fi
   	continue
 
@@ -473,6 +490,7 @@ while true
     if [ ! $? -eq 1 ]
     then
       echo "*** Job list is empty ***"
+      echo ""
     	continue
     fi
 
@@ -485,8 +503,13 @@ while true
 
     #prompt user for custom or pre-set schdeule commands
     echo ""
-    echo 'Would you like to schedule a custom time or choose a pre-set time ie: weekly?';
-    echo 'Please type: (1) for custom or (2) for pre-set'; read ans;
+    echo 'Please select your schedule time input type:';
+    echo "--"
+    echo "1. Custom time (whenever you want)"
+    echo "2. Choose from preset times (ie: weekly, daily...)"
+    echo ""
+    #read in user input
+  	read -p "Select a command number: " ans
 
     if [ "$ans" -eq 1 ]
     then
@@ -509,6 +532,7 @@ while true
     then
       continue
     else
+      echo ""
       echo "Job successfully edited"
       echo ""
     fi
@@ -531,6 +555,7 @@ while true
     #check for errors
     if [ ! $? -eq 1 ]
     then
+      echo ""
       echo "*** Job list is empty ***"
       echo ""
       continue
