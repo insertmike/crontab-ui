@@ -21,7 +21,7 @@ print_crontab_jobs() {
 			count=0
 			cat cronCopy | while read min hour day month weekDay cm
 			do
-        #commands counter
+        #counter increment
 			  count=$((count + 1))
 
         #check for presence of "@" commands & print
@@ -41,17 +41,17 @@ print_crontab_jobs() {
   				weekDay=$(format_output_field "$weekDay")
 
   				echo "Command No "$count": "$cm""
-          echo "Running: on "$min" minute/s, "$hour" hour/s, on "$day" day(s) of month, on "$month" month(s), "$weekDay" day(s) of the week \n"
+          echo "Running: on "$min" minute/s, "$hour" hour/s, on "$day" day(s) of month, on "$month" month(s), "$weekDay" day(s) of the week"
           echo ""
         fi
 
 			done
 
-      # Success
+      #success
 			return 1
 		else
 
-      # Error
+      #error
 			return 0
 		fi
 }
@@ -72,19 +72,6 @@ format_output_field() {
 
 	if [ "$1" = "*" ];then
 		echo "any";
-
-  # Handling STEP value Output Format
-  # elif (echo "$1" | grep -Eq '(/)'); then
-  #   if (echo "$1" | grep -Eq '(\*)'); then
-  #     (echo -n "every other "); (echo -n "$1" | grep -o -E '[^/]*$' | tr '\n' ' ');
-  #   else
-  #     echo -n "between "; (echo -n "$1" | grep -o -E '^[^/]*' | tr '\n' ' '); (echo -n "every other "); (echo -n "$1" | grep -o -E '[^/]*$' | tr '\n' ' ');
-  #   fi
-  #
-  # # Handling RANGES & LISTS value Output Format
-  # elif (echo "$1" | grep -Eq '(-|,)'); then
-  #   echo -n "between $1";
-
 	else
 		echo "every $1"
 	fi
@@ -113,42 +100,48 @@ ensure_range() {
   #iterate over array & validate split values indiviadually
   for element in "${array[@]}"
   do
-    #check for STEPs, RANGES & LISTS
+
+    #check for STEPs, RANGES & LISTS, SINGLE VALUES
     if (echo "$element" | grep -Eq '^([0-9]+-[0-9]+|\*)/[0-9]+$|^[0-9]+-[0-9]+$|^[0-9]+$')
     then
-      # verify all input values are within range
+
+      #value range check
       s=$(grep -Eo '[[:alpha:]]+|[0-9]+' <<< "$element")
       echo "$s" | while read -r line;
         do
 
-          # Value range check
+          #value range check
         	if [ "$line" -ge "$2" ] && [ "$line" -le "$3" ]
         	then
-        		# success
+        		#success
             continue
         	else
-        		# error
+        		#error
             echo "***** Error: Invalid input, please check regulations and try again *****"
+            #record error in log file
             echo "1" >> error
         	fi
+
         done
-
         continue
 
-    #check month name inputs:
-    elif (echo "$element" | grep -Eq '(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)')
-      then
-        continue
+    #check only month name inputs:
+    elif (echo "$element" | grep -Eq '(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)') && [ "$3" -eq 12 ]
+    then
+      continue
 
-    #check week day name inputs:
-    elif (echo "$element" | grep -Eq '(Mon|Tue|Wed|Thu|Fri|Sat|Sun)')
-      then
-        continue
-    #error
+    #check only week day name inputs:
+    elif (echo "$element" | grep -Eq '(Mon|Tue|Wed|Thu|Fri|Sat|Sun)') && [ "$3" -eq 6 ]
+    then
+      continue
+
+    #otherwise error
     else
       echo "***** Error: Invalid input, please check regulations and try again *****"
       return 0
+
     fi
+
   done
 
   #pipeline file to print command with sed
@@ -185,7 +178,7 @@ insert_crontab_job_pre_set() {
 	echo "@yearly or @annualy - Run once a year"
   echo "@monthly - Run once a month"
 	echo "@weekly - Run once a week"
-	echo "@daily or @midnight- Run once a day"
+	echo "@daily or @midnight - Run once a day"
 	echo "@hourly - Run once an hour"
 	echo ""
   echo 'Enter pre-ser command to use (ie: @reboot)'; read preset;
@@ -330,14 +323,7 @@ validate_input_field() {
 #             Month Case
 # -------------------------------------
 	"month")
-    #check month name inputs:
-    if (echo "$1" | grep -Eq '(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)')
-    then
-      # success
-      return 1
-    else
-	    ensure_range "$1" 1 12
-    fi
+    ensure_range "$1" 1 12
 		return	$?
 	  ;;
 
@@ -345,14 +331,7 @@ validate_input_field() {
 #            WeekDay Case
 # -------------------------------------
 	"weekDay")
-    #check week day name inputs:
-    if (echo "$1" | grep -Eq '(Mon|Tue|Wed|Thu|Fri|Sat|Sun)')
-    then
-      # success
-      return 1
-    else
-	    ensure_range "$1" 0 6
-    fi
+    ensure_range "$1" 0 6
 		return	$?
 	  ;;
 
@@ -428,8 +407,7 @@ while true
 
     # Prompt user for custom or pre-set schdeule commands
     echo 'Would you like to schedule a custom time or choose a pre-set time (ie: weekly)?';
-    echo ""
-    echo 'Please type: (1) for "custom" or (2) for "pre-set"'; read ans;
+    echo 'Please type: (1) for custom or (2) for pre-set'; read ans;
 
     if [ "$ans" -eq 1 ]
     then
@@ -472,7 +450,7 @@ while true
     fi
 
     #prompt for command to edit
-    read -p "Select command to be edited: " commandEdit
+    read -p "Select command number to be edited: " commandEdit
 
     #remove the command and update crontab file
     sed -i "$commandEdit"d cronCopy
@@ -480,7 +458,7 @@ while true
 
     #prompt user for custom or pre-set schdeule commands
     echo 'Would you like to schedule a custom time or choose a pre-set time ie: weekly?';
-    echo 'Please type: (1) for "custom" or (2) for "pre-set"'; read ans;
+    echo 'Please type: (1) for custom or (2) for pre-set'; read ans;
 
     if [ "$ans" -eq 1 ]
     then
@@ -570,7 +548,7 @@ done
 # -- END
 
 # delete cronCopy file
-rm cronCopy;
+rm cronCopy
 
 #  delete error file
 rm error
