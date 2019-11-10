@@ -3,7 +3,7 @@
 Project motivation
 --
 
-As a team we aim to simplify the use of command-line commands that aim to schedule tasks for the user, by building a user friendly interface for a 'task scheduler', which otherwise is not very user friendly.
+As a team we aim to simplify the use of command-line commands that aim to schedule tasks for the user, by building a more user friendly interface for a UNIX 'task scheduler'.
 
 Description:
 --
@@ -18,7 +18,7 @@ Cron job (or cron schedule) is a specific set of execution instructions specifyi
 How it works?
 --
 
-1. Run the script by typing the following in to the console/terminal: ```./<filename.sh>```
+1. Run the script by typing the following in to the console/terminal: ```./crontab-ui.sh```
 2. You are presented with a menu with numbered options to manage your tasks.
 3. Select an option by typing in the console the corresponding number to that command, ie: ```1. Display all jobs``` will display all current active scheduled jobs once you press ```1```
 
@@ -34,7 +34,7 @@ command | description
 5 | Remove all jobs
 9 | Exit
 
-Usage Examples:
+Usage Examples (In-depth):
 --
 
 Here we will show you how to use or script.
@@ -48,17 +48,23 @@ Select an option by typing in the console the corresponding number to that comma
 ### Display crontab jobs [1]:
 If you have typed ```1``` then you will obtain an output (list-like) of all of the current active crontab jobs.
 
-![image](https://user-images.githubusercontent.com/45242072/68074393-63078300-fd92-11e9-8607-07ddcc2f4715.png)
+![image](https://user-images.githubusercontent.com/20924663/68547427-7db4aa00-03d9-11ea-98b5-b5205c46a43d.png)
 
 ### Inserting a job [2]:
-If you have typed ```2``` then you will be presented with a series of questions to configure your to-be scheduled task, such as the time of day that you wish for your task to run & what is that you wish for your task to do.
+If you have typed ```2``` then you will be presented with a series of questions to configure your to-be scheduled task: whether you want a custom schedule or use a preset schedule command, when you want your task to run & what will the task do.
 
-![image](https://user-images.githubusercontent.com/45242072/68074404-8e8a6d80-fd92-11e9-9666-bde1dae10d66.png)
+Using Custom Schedule Commands
+
+![image](https://user-images.githubusercontent.com/20924663/68547491-0a5f6800-03da-11ea-809f-6748fbc57d7c.png)
+
+Using Pre-set schedule commands
+
+![image](https://user-images.githubusercontent.com/20924663/68547512-3e3a8d80-03da-11ea-856e-d2a13b4a080b.png)
 
 ### Editing a job [3]:
-If you have typed ```3```, you will be presented with a prompt input to search by task commands. If the searched task command exists, then you will be asked to change the scheduled task to whatever you want through a similar set of 'config' questions like in _commands 2_.
+If you have typed ```3```, you will be presented with a prompt input to search by task commands. If the searched task command exists, then you will be asked to change the scheduled task to whatever you want through a similar set of 'config' questions like in _command 2_ **Inserting a job**.
 
-![image](https://user-images.githubusercontent.com/45242072/68074423-bd084880-fd92-11e9-9a4d-9ea368aa182b.png)
+![image](https://user-images.githubusercontent.com/20924663/68547544-a7ba9c00-03da-11ea-95ce-89144f7758c2.png)
 
 ### Remove a job [4]:
 If you have typed ```4```, you will be presented with a prompt input to search by task commands. If the searched task command exists, that task will be removed from the your scheduled tasks.
@@ -80,11 +86,18 @@ Further technical code doc.
 
 For this project we have used a variety of different commands to fulfill our task scheduler. We listed & explained in detail the commands below, with examples of how we used them from our project code.
 
-- ```grep```
+- ```grep```- stands for: _g/re/p (globally search a regular expression and print)_. This commands has the same effect: doing a global search with the regular expression and printing all matching lines.
 
-- ```sed```
+- ```sed``` - stands for _**s**tream **ed**itorsed_. As a command it receives input text as a _“stream”_ and edits the stream according to your instructions (filter). By and large, **people use _sed_ as a command line version of find and replace.**
 
-- ```crontab```
+- ```cat``` -
+
+- ```IFS``` -
+
+- ```read``` -
+
+- ```tail``` -
+
 
 
 Requirements:

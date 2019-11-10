@@ -19,20 +19,27 @@ print_crontab_jobs() {
 		then
 			#instanciate counter
 			count=0
+      #pipeline cronCopy content to "read" command
 			cat cronCopy | while read min hour day month weekDay cm
 			do
         #counter increment
 			  count=$((count + 1))
 
-        #check for presence of "@" commands & print
+        #check for presence of "@" commands & print line
         if (echo "$min" | grep -Eq '@'); then
 
-          #pipeline file to print command with sed
+          #locate "@" line & assign to variable "$p"
           p=$(cat cronCopy | sed -n "$count"p);
-          echo "Command No "$count": Running "$p""
+
+          #read in variable "$p" & break into components
+          read preset pre_setcommand <<< "$p"
+
+          #print
+          echo "Command No "$count": "$pre_setcommand""
+          echo "Running "$preset""
           echo ""
 
-        #all other commands, format output thier:
+        #all other commands, format output line accordingly:
         else
   				min=$(format_output_field "$min")
   				hour=$(format_output_field "$hour")
@@ -40,6 +47,7 @@ print_crontab_jobs() {
   				month=$(format_output_field "$month")
   				weekDay=$(format_output_field "$weekDay")
 
+          #print output
   				echo "Command No "$count": "$cm""
           echo "Running: on "$min" minute/s, "$hour" hour/s, on "$day" day(s) of month, on "$month" month(s), "$weekDay" day(s) of the week"
           echo ""
@@ -81,16 +89,22 @@ format_output_field() {
 # [Ensure Range Function]
 # --
 # -- Context: Ensures that numeric $1 argument is in range between arguments $2 and $3
+# --          Ensures values are according to the crontab specification
+# --          - Lists: "4-8,6-20"..."6,4,6,7"
+# --          - Ranges: "4-6","6-7"..."0-23"
+# --          - Steps:  "*/2","0-23/4"..."*/2,*/5"
+# --          OR comabination of the 3 ie: "*/2,*/3,2,3,4,8-12"
 # --
 # -- Args: -> $1 ( User Argument )
-#          -> $2 ( Range: Lower Bound )
-#          -> $3 ( Range: Upper Bound )
+# --       -> $2 ( Range: Lower Bound )
+# --       -> $3 ( Range: Upper Bound )
 # --
 # -- Returns: -> 1 ( True ) | 0 ( False )
 # --
 # ------------------
 ensure_range() {
 
+  #start error log file with 0 (no errors)
   echo "0" >> error
 
   #split input values using (,) as delimiters
@@ -101,16 +115,18 @@ ensure_range() {
   for element in "${array[@]}"
   do
 
-    #check for STEPs, RANGES & LISTS, SINGLE VALUES
+    #check for input matchting patterns
     if (echo "$element" | grep -Eq '^([0-9]+-[0-9]+|\*)/[0-9]+$|^[0-9]+-[0-9]+$|^[0-9]+$')
     then
 
       #value range check
+      #split all digits in string into subsequent substrings
       s=$(grep -Eo '[[:alpha:]]+|[0-9]+' <<< "$element")
+      #iterate over the split digits & validate them indiviadually
       echo "$s" | while read -r line;
         do
 
-          #value range check
+          #digit value range check
         	if [ "$line" -ge "$2" ] && [ "$line" -le "$3" ]
         	then
         		#success
@@ -144,12 +160,16 @@ ensure_range() {
 
   done
 
-  #pipeline file to print command with sed
+  #read last line of error log file
   k=$(tail -n 1 error)
+
+  #check for errors ie: 1
   if (echo "$k" | grep -Eq "1");
   then
+    # error
     return 0
   else
+    # success
     return 1
   fi
 
@@ -342,6 +362,7 @@ validate_input_field() {
 		echo "***** Error: Invalid parameters, please check regulations and try again *****"
 		return 0
 	  ;;
+
 	esac
 }
 
@@ -369,6 +390,7 @@ while true
 	echo "5. Remove all jobs."
 	echo "9. Exit."
 	echo ""
+  #read in user input
 	read -p "Select a command number: " num
 	echo ""
 
@@ -376,10 +398,10 @@ while true
 # User menu selection input validation
 # -------------------------------------
 
-  # pass user input to vaidation method
+  #pass user input to vaidation function
 	ensure_range "$num" 1 9
 
-  # if return != 1 (not success), restart loop
+  #check for errors (return status)
 	if [ ! $? -eq 1 ]
 	then
 		continue
@@ -391,7 +413,10 @@ while true
 
 	if [ "$num" -eq 1 ]
 	then
+    #call function to print crontab jobs
 		print_crontab_jobs
+
+    #check for errors (return status)
 		if [ ! $? -eq 1 ]
 		then
 			echo "No Jobs to Display"
@@ -405,25 +430,27 @@ while true
 	elif [ "$num" -eq 2 ]
   then
 
-    # Prompt user for custom or pre-set schdeule commands
+    #prompt user for custom or pre-set schdeule commands
     echo 'Would you like to schedule a custom time or choose a pre-set time (ie: weekly)?';
     echo 'Please type: (1) for custom or (2) for pre-set'; read ans;
 
     if [ "$ans" -eq 1 ]
     then
-      # Insert Job Method (Custom time selection)
+      #call insert job function (custom time selection)
     	insert_crontab_job
 
     elif [ "$ans" -eq 2 ]
     then
-      # Insert Job Method (Pre-set schedule time)
+      #call insert job function (Pre-set schedule time)
     	insert_crontab_job_pre_set
 
     else
+      #error, invalid command selection
       echo "---- Incorrect command selection ----"
       continue
     fi
 
+    #check for errors
   	if [ ! $? -eq 1 ]
   	then
   		continue
@@ -442,14 +469,14 @@ while true
     #call function to print crontab jobs
     print_crontab_jobs
 
-    #error handling
+    #check for errors
     if [ ! $? -eq 1 ]
     then
       echo "*** Job list is empty ***"
     	continue
     fi
 
-    #prompt for command to edit
+    #prompt for command number to edit
     read -p "Select command number to be edited: " commandEdit
 
     #remove the command and update crontab file
@@ -457,32 +484,35 @@ while true
     crontab cronCopy
 
     #prompt user for custom or pre-set schdeule commands
+    echo ""
     echo 'Would you like to schedule a custom time or choose a pre-set time ie: weekly?';
     echo 'Please type: (1) for custom or (2) for pre-set'; read ans;
 
     if [ "$ans" -eq 1 ]
     then
-      # Insert Job Method (Custom time selection)
+      #call insert job function (custom time selection)
     	insert_crontab_job
 
     elif [ "$ans" -eq 2 ]
     then
-      # Insert Job Method (Pre-set schedule time)
+      #call insert job function (Pre-set schedule time)
     	insert_crontab_job_pre_set
 
     else
+      #error, invalid command selection
       echo "---- Incorrect command selection ----"
       continue
     fi
 
-    #error handling
+    #check for errors
     if [ ! $? -eq 1 ]
     then
       continue
     else
-      echo ""
       echo "Job successfully edited"
+      echo ""
     fi
+
     continue
 
 # -------------------------------------
@@ -491,18 +521,22 @@ while true
 
   elif [ "$num" -eq 4 ]
 	then
+
     #instanciate counter
     count=0
 
-    #call print function
+    #call function to print crontab jobs
     print_crontab_jobs
+
+    #check for errors
     if [ ! $? -eq 1 ]
     then
       echo "*** Job list is empty ***"
       echo ""
       continue
     fi
-    #prompt for command to delete
+
+    #prompt for command number to delete
     read -p "Select command to be deleted: " commandDel
 
     #remove the command and update crontab file
@@ -519,6 +553,8 @@ while true
 
 	elif [ "$num" -eq 5 ]
 	then
+
+    #remove all crontab jobs
     crontab -r >/dev/null 2>&1;
 
     echo "All jobs removed"
@@ -548,10 +584,10 @@ done
 # -- END
 
 # delete cronCopy file
-rm cronCopy
+rm "cronCopy"
 
 #  delete error file
-rm error
+rm "error"
 
 # Exit crontab
 echo "Exit successfull!"
