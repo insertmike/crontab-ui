@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 touch cronCopy
 chmod 777 cronCopy
@@ -27,9 +27,10 @@ print_crontab_jobs() {
         #check for presence of "@" commands & print
         if (echo "$min" | grep -Eq '@'); then
 
-          #pipeline fil to print/p command with sed
+          #pipeline file to print command with sed
           p=$(cat cronCopy | sed -n "$count"p);
-          echo "Command No "$count": "$p" \n"
+          echo "Command No "$count": Running "$p""
+          echo ""
 
         #all other commands, format output thier:
         else
@@ -41,6 +42,7 @@ print_crontab_jobs() {
 
   				echo "Command No "$count": "$cm""
           echo "Running: on "$min" minute/s, "$hour" hour/s, on "$day" day(s) of month, on "$month" month(s), "$weekDay" day(s) of the week \n"
+          echo ""
         fi
 
 			done
@@ -89,24 +91,6 @@ format_output_field() {
 }
 
 # ------------------
-# [ Ensure Numeric Argument Function]
-# --
-# -- Context: Checks if argument is a numeric value
-# --
-# -- Args: -> $1 ( Argument To Be Checked )
-# --
-# -- Returns: -> 1 ( True ) | 0 ( False )
-# --
-# ------------------
-ensure_numeric() {
-	if [ "$1" -eq "$1" ] 2>/dev/null; then
-		return 1
-	else
-		return 0
-	fi
-}
-
-# ------------------
 # [Ensure Range Function]
 # --
 # -- Context: Ensures that numeric $1 argument is in range between arguments $2 and $3
@@ -120,42 +104,69 @@ ensure_numeric() {
 # ------------------
 ensure_range() {
 
-  # Check for STEPs, LISTS & RANGES (check coursework doc) values of the form (0-23|*) / (0-23)
-  if (echo "$1" | grep -Eq '(,?([0-9]+-[0-9]+|\*)/[0-9]+)$|(,?[0-9]+-[0-9]+)$|(,?[0-9]+)$')
+  echo "0" >> error
+
+  #split input values using (,) as delimiters
+  #store split values in array
+  IFS=',' read -r -a array <<< "$1"
+
+  #iterate over array & validate split values indiviadually
+  for element in "${array[@]}"
+  do
+    #check for STEPs, RANGES & LISTS
+    if (echo "$element" | grep -Eq '^([0-9]+-[0-9]+|\*)/[0-9]+$|^[0-9]+-[0-9]+$|^[0-9]+$')
+    then
+      # verify all input values are within range
+      s=$(grep -Eo '[[:alpha:]]+|[0-9]+' <<< "$element")
+      echo "$s" | while read -r line;
+        do
+
+          # Value range check
+        	if [ "$line" -ge "$2" ] && [ "$line" -le "$3" ]
+        	then
+        		# success
+            continue
+        	else
+        		# error
+            echo "***** Error: Invalid input, please check regulations and try again *****"
+            echo "1" >> error
+        	fi
+        done
+
+        continue
+
+    #check month name inputs:
+    elif (echo "$element" | grep -Eq '(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)')
+      then
+        continue
+
+    #check week day name inputs:
+    elif (echo "$element" | grep -Eq '(Mon|Tue|Wed|Thu|Fri|Sat|Sun)')
+      then
+        continue
+    #error
+    else
+      echo "***** Error: Invalid input, please check regulations and try again *****"
+      return 0
+    fi
+  done
+
+  #pipeline file to print command with sed
+  k=$(tail -n 1 error)
+  if (echo "$k" | grep -Eq "1");
   then
-		# Success
-		return 1
+    return 0
   else
-
-    # Otherwise, check for literal integers:
-
-  	# Check -> Numeric value
-  	ensure_numeric "$1"
-  	if [ ! $? -eq 1 ]
-  	then
-  		echo "***** Error: Invalid input, please check regulations and try again *****"
-  		return 0
-  	fi
-
-  	# Range check
-  	if [ "$1" -ge "$2" ] && [ "$1" -le "$3" ]
-  	then
-  		# Success
-  		return 1
-  	else
-  		# Failure -> Input out of range
-  		echo "***** Error: Invalid range, please check regulations and try again *****"
-  		return 0
-  	fi
-
+    return 1
   fi
+
 }
 
 # ------------------
 # [Ensure Pre-set Command Function]
 # --
 # -- Context: Prompts user to insert new crontab job
-# --          from the pre-set commands in crontab
+# --          from the pre-set commands list in crontab
 # --
 # -- If cron does not exist, it creates it
 # -- Returns: -> 1 ( Success ) | 0 ( Failure )
@@ -178,17 +189,28 @@ insert_crontab_job_pre_set() {
 	echo "@hourly - Run once an hour"
 	echo ""
   echo 'Enter pre-ser command to use (ie: @reboot)'; read preset;
-  echo 'Enter command to install'; read pre_setcommand;
 
-  # Place the command in the crontab file:
-  echo "$preset $pre_setcommand" >> cronCopy;
+  # validate user inputs:
+  if (echo "$preset" | grep -Eq '(@reboot|@yearly|@annualy|@monthly|@weekly|@daily|@midnight|@hourly)')
+  then
+    # Prompt for command input
+    echo 'Enter command to install'; read pre_setcommand;
 
-  # Update crontab file
-  crontab cronCopy
+    # Place the command in the crontab file:
+    echo "$preset $pre_setcommand" >> cronCopy;
 
-  # Success
-  return 1
+    # Update crontab file
+    crontab cronCopy
 
+    # Success
+    return 1
+
+  else
+    echo "***** Error: Invalid parameters, please check regulations and try again *****"
+
+    # Error
+    return 0
+  fi
 }
 
 # ------------------
@@ -226,7 +248,7 @@ insert_crontab_job() {
 	fi
 
   # Prompt for month input
-	echo 'Enter day of month ( 1 - 12 ) | * for any:'; read month
+	echo 'Enter month ( 1 - 12 ) | * for any:'; read month
 	validate_input_field "$month" "month"
 	if [ ! $? -eq 1 ]
 	then
@@ -308,10 +330,10 @@ validate_input_field() {
 #             Month Case
 # -------------------------------------
 	"month")
-    # check for string months inputs:
-    if (echo "$1" | grep -Eq '(,?Jan,?|,?Feb,?|,?Mar,?|,?Apr,?|,?May,?|,?Jun,?|,?Jul,?|,?Aug,?|,?Sep,?|,?Oct,?|,?Nov,?|,?Dec,?)')
+    #check month name inputs:
+    if (echo "$1" | grep -Eq '(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)')
     then
-      # Success
+      # success
       return 1
     else
 	    ensure_range "$1" 1 12
@@ -323,10 +345,10 @@ validate_input_field() {
 #            WeekDay Case
 # -------------------------------------
 	"weekDay")
-    # check for string weekdays inputs:
-    if (echo "$1" | grep -Eq '(,?Mon,?|,?Tue,?|,?Wed,?|,?Thu,?|,?Fri,?|,?Sat,?|,?Sun,?)')
+    #check week day name inputs:
+    if (echo "$1" | grep -Eq '(Mon|Tue|Wed|Thu|Fri|Sat|Sun)')
     then
-      # Success
+      # success
       return 1
     else
 	    ensure_range "$1" 0 6
@@ -405,7 +427,8 @@ while true
   then
 
     # Prompt user for custom or pre-set schdeule commands
-    echo 'Would you like to schedule a custom time or choose a pre-set time ie: weekly?';
+    echo 'Would you like to schedule a custom time or choose a pre-set time (ie: weekly)?';
+    echo ""
     echo 'Please type: (1) for "custom" or (2) for "pre-set"'; read ans;
 
     if [ "$ans" -eq 1 ]
@@ -548,6 +571,9 @@ done
 
 # delete cronCopy file
 rm cronCopy;
+
+#  delete error file
+rm error
 
 # Exit crontab
 echo "Exit successfull!"
